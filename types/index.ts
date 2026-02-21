@@ -9,6 +9,7 @@ export interface Restaurant {
   y: string; // 위도
   distance?: string;
   placeUrl?: string;
+  isBye?: boolean;
 }
 
 export interface Location {

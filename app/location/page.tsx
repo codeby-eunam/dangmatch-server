@@ -58,7 +58,8 @@ export default function LocationPage() {
           x: doc.x,
           y: doc.y,
           distance: doc.distance,
-          placeUrl: doc.place_url
+          placeUrl: doc.place_url,
+		  isBye: false
         }));
 
         setRestaurants(restaurants);
