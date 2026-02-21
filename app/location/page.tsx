@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTournamentStore } from '@/lib/store/tournament';
+import type { Location } from '@/types';
 
 export default function LocationPage() {
   const router = useRouter();
-  const { setLocation } = useTournamentStore();
+  const { setLocation, setRestaurants } = useTournamentStore();
   
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,13 +25,10 @@ export default function LocationPage() {
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setLocation(
-			{
-				lat: position.coords.latitude,
-				lng: position.coords.longitude
-        	},
-			'current'
-		);
+        setLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        });
         router.push('/radius');
       },
       (err) => {
@@ -38,6 +36,39 @@ export default function LocationPage() {
         setLoading(false);
       }
     );
+  };
+
+  const searchRestaurantsDirectly = async (location: Location) => {
+    try {
+      const radius = 3000; // 3km 고정
+      
+      const response = await fetch(
+        `/api/kakao/nearby?lat=${location.lat}&lng=${location.lng}&radius=${radius}`
+      );
+      const data = await response.json();
+
+      if (data.documents && data.documents.length > 0) {
+        const restaurants = data.documents.map((doc: any) => ({
+          id: doc.id,
+          name: doc.place_name,
+          category: doc.category_name,
+          address: doc.address_name,
+          roadAddress: doc.road_address_name || doc.address_name,
+          phone: doc.phone || '',
+          x: doc.x,
+          y: doc.y,
+          distance: doc.distance,
+          placeUrl: doc.place_url
+        }));
+
+        setRestaurants(restaurants);
+        router.push('/restaurants');
+      } else {
+        setError('해당 지역에 식당이 없습니다. 다른 지역을 검색해보세요.');
+      }
+    } catch (error) {
+      setError('식당 검색에 실패했습니다');
+    }
   };
 
   const searchAddress = async () => {
@@ -51,23 +82,25 @@ export default function LocationPage() {
 
     try {
       const response = await fetch(
-        `/api/kakao/search-address?query=${encodeURIComponent(searchQuery)}`
+        `/api/kakao/search-location?query=${encodeURIComponent(searchQuery)}`
       );
       const data = await response.json();
 
       if (data.documents && data.documents.length > 0) {
         const first = data.documents[0];
-        setLocation(
-			{
-				lat: parseFloat(first.y),
-				lng: parseFloat(first.x),
-				address: first.address_name
-        	},
-			'area'
-		);
-        router.push('/radius');
+        
+        const location = {
+          lat: parseFloat(first.y),
+          lng: parseFloat(first.x),
+          address: first.address_name || first.place_name
+        };
+        
+        setLocation(location);
+        
+        // 지역 검색은 바로 식당 검색 (3km 반경)
+        await searchRestaurantsDirectly(location);
       } else {
-        setError('검색 결과가 없습니다. 다시 시도해주세요.');
+        setError('검색 결과가 없습니다. 다른 키워드로 시도해보세요.');
       }
     } catch (err) {
       setError('검색에 실패했습니다');
@@ -106,7 +139,7 @@ export default function LocationPage() {
         <div className="space-y-3">
           <input
             type="text"
-            placeholder="예: 부산 남포동, 강남역"
+            placeholder="예: 홍대입구역, 강남역"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && searchAddress()}
@@ -132,7 +165,7 @@ export default function LocationPage() {
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
           <p className="text-xs text-gray-600 mb-2">💡 검색 예시</p>
           <div className="flex flex-wrap gap-2">
-            {['홍대입구', '강남역', '부산 남포동', '대구 동성로'].map(example => (
+            {['홍대입구역', '강남역', '부산 서면', '대구 동성로'].map(example => (
               <button
                 key={example}
                 onClick={() => setSearchQuery(example)}

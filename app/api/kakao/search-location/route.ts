@@ -11,9 +11,9 @@ export async function GET(request: NextRequest) {
   const apiKey = process.env.KAKAO_REST_API_KEY;
 
   try {
-    // 키워드 검색 API 사용
-    const response = await fetch(
-      `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(query)}&size=1`,
+    // 먼저 키워드 검색 시도
+    let response = await fetch(
+      `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(query)}`,
       {
         headers: {
           Authorization: `KakaoAK ${apiKey}`
@@ -21,12 +21,26 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    const data = await response.json();
-    
+    let data = await response.json();
+
+    // 결과 없으면 주소 검색 시도
+    if (!data.documents || data.documents.length === 0) {
+      response = await fetch(
+        `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(query)}`,
+        {
+          headers: {
+            Authorization: `KakaoAK ${apiKey}`
+          }
+        }
+      );
+      data = await response.json();
+    }
+
     console.log(`🔍 "${query}" 검색 결과: ${data.documents?.length}개`);
     
     return Response.json(data);
   } catch (error) {
+    console.error('❌ 검색 에러:', error);
     return Response.json({ error: '검색 실패' }, { status: 500 });
   }
 }

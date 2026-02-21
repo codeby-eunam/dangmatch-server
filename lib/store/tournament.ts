@@ -3,7 +3,6 @@ import { Restaurant, Location } from '@/types';
 
 interface TournamentStore {
   location: Location | null;
-  searchType: 'current' | 'area' | null;
   radius: number | null;
   restaurants: Restaurant[];
   
@@ -12,7 +11,7 @@ interface TournamentStore {
   winners: Restaurant[];
   finalWinner: Restaurant | null;
   
-  setLocation: (location: Location, searchType: 'current' | 'area') => void;
+  setLocation: (location: Location) => void;
   setRadius: (radius: number) => void;
   setRestaurants: (restaurants: Restaurant[]) => void;
   
@@ -25,7 +24,6 @@ interface TournamentStore {
 
 export const useTournamentStore = create<TournamentStore>((set) => ({
   location: null,
-  searchType: null,
   radius: null,
   restaurants: [],
   currentRound: 1,
@@ -33,7 +31,7 @@ export const useTournamentStore = create<TournamentStore>((set) => ({
   winners: [],
   finalWinner: null,
   
-  setLocation: (location, searchType) => set({ location, searchType }),
+  setLocation: (location) => set({ location }),
   setRadius: (radius) => set({ radius }),
   setRestaurants: (restaurants) => set({ restaurants }),
   
@@ -49,7 +47,6 @@ export const useTournamentStore = create<TournamentStore>((set) => ({
   
   reset: () => set({
     location: null,
-	searchType: null,
     radius: null,
     restaurants: [],
     currentRound: 1,

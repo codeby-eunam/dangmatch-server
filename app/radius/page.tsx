@@ -13,13 +13,12 @@ const RADIUS_OPTIONS = [
 
 export default function RadiusPage() {
   const router = useRouter();
-  const { location, searchType, setRadius, setRestaurants } = useTournamentStore();
+  const { location, setRadius, setRestaurants } = useTournamentStore();
   
   const [selectedRadius, setSelectedRadius] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // 현재 위치가 아니거나 위치 정보 없으면 리다이렉트
-  if (!location || searchType !== 'current') {
+  if (!location) {
     router.push('/location');
     return null;
   }
@@ -70,7 +69,7 @@ export default function RadiusPage() {
           얼마나 멀리까지?
         </h1>
         <p className="text-gray-600 text-center mb-8">
-          현재 위치 기준
+          {location.address || '현재 위치'} 기준
         </p>
 
         <div className="space-y-3">
