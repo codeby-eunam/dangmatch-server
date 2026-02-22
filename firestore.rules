@@ -1,0 +1,40 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── 식당 컬렉션 ──────────────────────────────────────────────────────────
+    match /restaurants/{placeId} {
+      // 읽기: 누구나 (랭킹, 카드 표시 등)
+      allow read: if true;
+
+      // 생성 / 업데이트: 누구나 허용
+      // → 카카오 공개 데이터이므로 비로그인 유저도 저장 가능
+      // → stats 포함 모든 필드 업데이트 허용
+      allow create, update: if true;
+    }
+
+    // ── 유저 컬렉션 ──────────────────────────────────────────────────────────
+    match /users/{uid} {
+      // 본인 문서만 읽기·쓰기
+      allow read, write: if request.auth != null
+                         && request.auth.uid == uid;
+    }
+
+    // ── 토너먼트 히스토리 (4~5차 MVP) ────────────────────────────────────────
+    match /tournament_history/{docId} {
+      // 읽기: 누구나 (랭킹 집계 등)
+      allow read: if true;
+      // 쓰기: 로그인 유저만
+      allow write: if request.auth != null;
+    }
+
+    // ── 피드백 / 신고 ─────────────────────────────────────────────────────────
+    match /feedback/{docId} {
+      // 읽기: 닫힘 (Firebase 콘솔에서 직접 확인)
+      allow read: if false;
+      // 제출: 누구나 (비로그인 사용자도 피드백 가능)
+      allow create: if true;
+    }
+  }
+}

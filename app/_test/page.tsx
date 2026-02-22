@@ -17,10 +17,9 @@ export default function TestTournamentPage() {
         name: `식당 ${i}`,
         category: '한식',
         address: `서울시 강남구 ${i}`,
-        roadAddress: `테헤란로 ${i}`,
         phone: '02-123-4567',
-        x: '127.0',
-        y: '37.5',
+        lat: 37.5,
+        lng: 127.0,
         distance: '100'
       });
     }

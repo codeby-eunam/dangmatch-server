@@ -5,10 +5,10 @@ import { useRouter } from 'next/navigation';
 import { useTournamentStore } from '@/lib/store/tournament';
 
 const RADIUS_OPTIONS = [
-  { label: '🚶 도보 가까이', value: 500, description: '5분 거리' },
-  { label: '🚶 도보 멀리', value: 1000, description: '10분 거리' },
-  { label: '🚗 차량 가까이', value: 3000, description: '5분 운전' },
-  { label: '🚗 차량 멀리', value: 5000, description: '10분 운전' },
+  { label: '도보 가까이', value: 500, description: '5분 거리 · 500m' },
+  { label: '도보 멀리', value: 1000, description: '10분 거리 · 1km' },
+  { label: '차량 가까이', value: 3000, description: '5분 운전 · 3km' },
+  { label: '차량 멀리', value: 5000, description: '10분 운전 · 5km' },
 ];
 
 export default function RadiusPage() {
@@ -55,15 +55,14 @@ export default function RadiusPage() {
             name: doc.place_name,
             category: doc.category_name,
             address: doc.address_name,
-            roadAddress: doc.road_address_name || doc.address_name,
             phone: doc.phone || '',
-            x: doc.x,
-            y: doc.y,
+            lat: parseFloat(doc.y),
+            lng: parseFloat(doc.x),
             distance: doc.distance,
-            placeUrl: doc.place_url,
+            kakaoUrl: doc.place_url,
           }))
         );
-        router.push(documents.length > 16 ? '/swipe' : '/restaurants');
+        router.push('/swipe');
       } else {
         alert('주변에 식당이 없습니다. 반경을 늘려보세요.');
       }
@@ -75,56 +74,75 @@ export default function RadiusPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
-        <h1 className="text-3xl font-bold text-center mb-2">
-          얼마나 멀리까지?
-        </h1>
-        <p className="text-gray-600 text-center mb-8">
-          {location.address || '현재 위치'} 기준
-        </p>
+    <div className="min-h-screen flex flex-col" style={{ background: '#FFFDF9' }}>
+      {/* 헤더 */}
+      <header className="flex items-center px-6 py-4" style={{ borderBottom: '1px solid #F0EDEA' }}>
+        <button onClick={() => router.back()} className="text-sm mr-4 hover:opacity-60 transition-opacity" style={{ color: '#8C8C8C' }}>
+          ←
+        </button>
+        <span className="text-xs font-bold tracking-[0.2em] uppercase" style={{ color: '#8C8C8C' }}>
+          반경 설정
+        </span>
+      </header>
 
-        <div className="space-y-3">
-          {RADIUS_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              onClick={() => setSelectedRadius(option.value)}
-              className={`w-full p-4 rounded-xl border-2 transition text-left ${
-                selectedRadius === option.value
-                  ? 'border-blue-600 bg-blue-50'
-                  : 'border-gray-200 hover:border-blue-300'
-              }`}
+      <main className="flex-1 flex flex-col items-center justify-center px-6 py-8">
+        <div className="w-full max-w-md">
+          {/* 섹션 타이틀 */}
+          <div className="mb-8">
+            <div
+              className="inline-block text-xs font-bold tracking-widest uppercase px-2 py-0.5 mb-3"
+              style={{ background: '#FF4D2E', color: '#FFFDF9' }}
             >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-semibold text-lg">{option.label}</p>
-                  <p className="text-sm text-gray-600">{option.description}</p>
-                </div>
-                <div className="text-gray-400">
-                  {selectedRadius === option.value && (
-                    <span className="text-blue-600 text-2xl">✓</span>
+              Step 2
+            </div>
+            <h1 className="text-3xl font-black tracking-tight" style={{ color: '#1F1F1F' }}>
+              얼마나 멀리까지?
+            </h1>
+            <p className="text-sm mt-1" style={{ color: '#8C8C8C' }}>
+              {location.address || '현재 위치'} 기준
+            </p>
+          </div>
+
+          {/* 반경 옵션 */}
+          <div className="space-y-2 mb-8">
+            {RADIUS_OPTIONS.map((option) => {
+              const selected = selectedRadius === option.value;
+              return (
+                <button
+                  key={option.value}
+                  onClick={() => setSelectedRadius(option.value)}
+                  className="w-full p-4 text-left transition-all flex items-center justify-between"
+                  style={{
+                    background: selected ? '#1F1F1F' : '#F0EDEA',
+                    border: selected ? '1.5px solid #1F1F1F' : '1.5px solid transparent',
+                  }}
+                >
+                  <div>
+                    <p className="font-bold text-sm" style={{ color: selected ? '#FFFDF9' : '#1F1F1F' }}>
+                      {option.label}
+                    </p>
+                    <p className="text-xs mt-0.5" style={{ color: selected ? '#8C8C8C' : '#8C8C8C' }}>
+                      {option.description}
+                    </p>
+                  </div>
+                  {selected && (
+                    <span className="text-xs font-bold" style={{ color: '#FF4D2E' }}>✓</span>
                   )}
-                </div>
-              </div>
-            </button>
-          ))}
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            onClick={handleNext}
+            disabled={!selectedRadius || loading}
+            className="w-full py-4 text-sm font-bold tracking-widest uppercase transition-opacity hover:opacity-80 disabled:opacity-40"
+            style={{ background: '#FF4D2E', color: '#FFFDF9' }}
+          >
+            {loading ? '검색 중...' : '맛집 찾기'}
+          </button>
         </div>
-
-        <button
-          onClick={handleNext}
-          disabled={!selectedRadius || loading}
-          className="w-full mt-6 py-4 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
-        >
-          {loading ? '검색 중...' : '다음'}
-        </button>
-
-        <button
-          onClick={() => router.back()}
-          className="w-full mt-3 py-3 text-gray-600 hover:text-gray-800 transition"
-        >
-          ← 뒤로
-        </button>
-      </div>
+      </main>
     </div>
   );
 }
