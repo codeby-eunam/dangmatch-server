@@ -21,12 +21,12 @@ service cloud.firestore {
                          && request.auth.uid == uid;
     }
 
-    // ── 토너먼트 히스토리 (4~5차 MVP) ────────────────────────────────────────
+    // ── 토너먼트 히스토리 ─────────────────────────────────────────────────────
     match /tournament_history/{docId} {
       // 읽기: 누구나 (랭킹 집계 등)
       allow read: if true;
-      // 쓰기: 로그인 유저만
-      allow write: if request.auth != null;
+      // 쓰기: 누구나 (비로그인 유저도 결과 기록, uid: null 허용)
+      allow create: if true;
     }
 
     // ── 피드백 / 신고 ─────────────────────────────────────────────────────────
