@@ -1,9 +1,12 @@
 import { create } from 'zustand';
 import { Restaurant, Location } from '@/types';
 
+const ALL_CATEGORIES = ['한식', '중식', '일식', '양식', '분식', '카페', '기타'];
+
 interface TournamentStore {
   location: Location | null;
   radius: number | null;
+  categories: string[];
   restaurants: Restaurant[];
   swipedRestaurants: Restaurant[];
 
@@ -14,6 +17,7 @@ interface TournamentStore {
 
   setLocation: (location: Location) => void;
   setRadius: (radius: number) => void;
+  setCategories: (categories: string[]) => void;
   setRestaurants: (restaurants: Restaurant[]) => void;
   setSwipedRestaurants: (restaurants: Restaurant[]) => void;
 
@@ -27,6 +31,7 @@ interface TournamentStore {
 export const useTournamentStore = create<TournamentStore>((set) => ({
   location: null,
   radius: null,
+  categories: ALL_CATEGORIES,
   restaurants: [],
   swipedRestaurants: [],
   currentRound: 1,
@@ -36,6 +41,7 @@ export const useTournamentStore = create<TournamentStore>((set) => ({
 
   setLocation: (location) => set({ location }),
   setRadius: (radius) => set({ radius }),
+  setCategories: (categories) => set({ categories }),
   setRestaurants: (restaurants) => set({ restaurants }),
   setSwipedRestaurants: (restaurants) => set({ swipedRestaurants: restaurants }),
 
@@ -52,6 +58,7 @@ export const useTournamentStore = create<TournamentStore>((set) => ({
   reset: () => set({
     location: null,
     radius: null,
+    categories: ALL_CATEGORIES,
     restaurants: [],
     swipedRestaurants: [],
     currentRound: 1,
