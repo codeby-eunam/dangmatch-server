@@ -10,6 +10,7 @@ export interface Restaurant {
   distance?: string;
   placeUrl?: string;
   isBye?: boolean;
+  imageUrl?: string;
 }
 
 export interface Location {
