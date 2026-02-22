@@ -42,7 +42,7 @@ export default function LocationPage() {
 
   const toggleCategory = (cat: string) => {
     if (categories.includes(cat)) {
-      if (categories.length === 1) return; // 최소 1개 유지
+      if (categories.length === 1) return;
       setCategories(categories.filter((c) => c !== cat));
     } else {
       setCategories([...categories, cat]);
@@ -96,7 +96,7 @@ export default function LocationPage() {
             isBye: false,
           }))
         );
-        router.push(documents.length > 16 ? '/swipe' : '/restaurants');
+        router.push('/swipe');
       } else {
         setError('해당 지역에 식당이 없습니다. 다른 지역을 검색해보세요.');
       }
@@ -140,95 +140,130 @@ export default function LocationPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
-        <h1 className="text-3xl font-bold text-center mb-2">어디서 먹을까요?</h1>
-        <p className="text-gray-600 text-center mb-6">위치를 설정해주세요</p>
-
-        {/* 카테고리 필터 */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-medium text-gray-700">음식 종류</p>
-            <span className="text-xs text-gray-400">{categories.length}개 선택됨</span>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {CATEGORIES.map((cat) => {
-              const selected = categories.includes(cat);
-              return (
-                <button
-                  key={cat}
-                  onClick={() => toggleCategory(cat)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium border-2 transition ${
-                    selected
-                      ? 'border-blue-600 bg-blue-600 text-white'
-                      : 'border-gray-300 text-gray-500 hover:border-blue-400 hover:text-blue-600'
-                  }`}
-                >
-                  {cat}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* 현재 위치 */}
-        <button
-          onClick={useCurrentLocation}
-          disabled={loading}
-          className="w-full py-4 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed mb-4 transition"
-        >
-          {loading ? '위치 확인 중...' : '📍 현재 위치 사용'}
+    <div className="min-h-screen flex flex-col" style={{ background: '#FFFDF9' }}>
+      {/* 헤더 */}
+      <header className="flex items-center px-6 py-4" style={{ borderBottom: '1px solid #F0EDEA' }}>
+        <button onClick={() => router.back()} className="text-sm mr-4 hover:opacity-60 transition-opacity" style={{ color: '#8C8C8C' }}>
+          ←
         </button>
+        <span className="text-xs font-bold tracking-[0.2em] uppercase" style={{ color: '#8C8C8C' }}>
+          위치 설정
+        </span>
+      </header>
 
-        {/* 구분선 */}
-        <div className="flex items-center my-6">
-          <div className="flex-1 border-t border-gray-300"></div>
-          <span className="px-4 text-gray-500 text-sm">또는</span>
-          <div className="flex-1 border-t border-gray-300"></div>
-        </div>
+      <main className="flex-1 flex flex-col items-center justify-center px-6 py-8">
+        <div className="w-full max-w-md">
+          {/* 섹션 타이틀 */}
+          <div className="mb-8">
+            <div
+              className="inline-block text-xs font-bold tracking-widest uppercase px-2 py-0.5 mb-3"
+              style={{ background: '#FF4D2E', color: '#FFFDF9' }}
+            >
+              Step 1
+            </div>
+            <h1 className="text-3xl font-black tracking-tight" style={{ color: '#1F1F1F' }}>
+              어디서 먹을까요?
+            </h1>
+          </div>
 
-        {/* 지역 검색 */}
-        <div className="space-y-3">
-          <input
-            type="text"
-            placeholder="예: 홍대입구역, 강남역"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && searchAddress()}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          {/* 카테고리 필터 */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-bold tracking-widest uppercase" style={{ color: '#1F1F1F' }}>음식 종류</p>
+              <span className="text-xs" style={{ color: '#8C8C8C' }}>{categories.length}개 선택</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {CATEGORIES.map((cat) => {
+                const selected = categories.includes(cat);
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => toggleCategory(cat)}
+                    className="px-4 py-2 text-sm font-medium transition-all"
+                    style={selected
+                      ? { background: '#FF4D2E', color: '#FFFDF9', border: '1.5px solid #FF4D2E' }
+                      : { background: 'transparent', color: '#8C8C8C', border: '1.5px solid #F0EDEA' }
+                    }
+                  >
+                    {cat}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 현재 위치 버튼 */}
           <button
-            onClick={searchAddress}
+            onClick={useCurrentLocation}
             disabled={loading}
-            className="w-full py-3 bg-gray-800 text-white rounded-xl font-semibold hover:bg-gray-900 disabled:bg-gray-400 transition"
+            className="w-full py-4 text-sm font-bold tracking-widest uppercase transition-opacity hover:opacity-80 disabled:opacity-40 mb-4"
+            style={{ background: '#1F1F1F', color: '#FFFDF9' }}
           >
-            🔍 지역 검색
+            {loading ? '위치 확인 중...' : '현재 위치 사용'}
           </button>
-        </div>
 
-        {/* 에러 메시지 */}
-        {error && (
-          <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
-            {error}
+          {/* 구분선 */}
+          <div className="flex items-center my-6">
+            <div className="flex-1" style={{ height: 1, background: '#F0EDEA' }} />
+            <span className="px-4 text-xs tracking-widest" style={{ color: '#8C8C8C' }}>OR</span>
+            <div className="flex-1" style={{ height: 1, background: '#F0EDEA' }} />
           </div>
-        )}
 
-        {/* 예시 */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <p className="text-xs text-gray-600 mb-2">💡 검색 예시</p>
-          <div className="flex flex-wrap gap-2">
-            {['홍대입구역', '강남역', '부산 서면', '대구 동성로'].map((example) => (
-              <button
-                key={example}
-                onClick={() => setSearchQuery(example)}
-                className="px-3 py-1 bg-white border border-gray-300 rounded-full text-xs hover:border-blue-500 hover:text-blue-600 transition"
-              >
-                {example}
-              </button>
-            ))}
+          {/* 지역 검색 */}
+          <div className="space-y-3">
+            <input
+              type="text"
+              placeholder="예: 홍대입구역, 강남역"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && searchAddress()}
+              className="w-full px-4 py-3 text-sm outline-none transition-all"
+              style={{
+                background: '#F0EDEA',
+                color: '#1F1F1F',
+                border: '1.5px solid #F0EDEA',
+              }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = '#FF4D2E')}
+              onBlur={(e) => (e.currentTarget.style.borderColor = '#F0EDEA')}
+            />
+            <button
+              onClick={searchAddress}
+              disabled={loading}
+              className="w-full py-3 text-sm font-bold tracking-widest uppercase transition-opacity hover:opacity-80 disabled:opacity-40"
+              style={{ background: '#FF4D2E', color: '#FFFDF9' }}
+            >
+              {loading ? '검색 중...' : '지역 검색'}
+            </button>
+          </div>
+
+          {/* 에러 */}
+          {error && (
+            <div
+              className="mt-4 px-4 py-3 text-xs"
+              style={{ background: '#F0EDEA', color: '#FF4D2E', borderLeft: '3px solid #FF4D2E' }}
+            >
+              {error}
+            </div>
+          )}
+
+          {/* 검색 예시 */}
+          <div className="mt-6">
+            <p className="text-xs mb-2" style={{ color: '#8C8C8C' }}>빠른 검색</p>
+            <div className="flex flex-wrap gap-2">
+              {['홍대입구역', '강남역', '부산 서면', '대구 동성로'].map((example) => (
+                <button
+                  key={example}
+                  onClick={() => setSearchQuery(example)}
+                  className="px-3 py-1 text-xs transition-all hover:opacity-60"
+                  style={{ border: '1px solid #F0EDEA', color: '#8C8C8C', background: '#FFFDF9' }}
+                >
+                  {example}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

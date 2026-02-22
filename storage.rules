@@ -1,0 +1,14 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // 식당 이미지
+    // - 읽기: 누구나
+    // - 쓰기: 비활성화 (유저 200명 이후 오픈 예정)
+    match /restaurants/{placeId}/{imageId} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}

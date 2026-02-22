@@ -4,6 +4,7 @@ import { useState, useRef, forwardRef, useImperativeHandle, useEffect } from 're
 import { useRouter } from 'next/navigation';
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useTournamentStore } from '@/lib/store/tournament';
+import { upsertRestaurants } from '@/lib/firebase/restaurants';
 import type { Restaurant } from '@/types';
 
 const SWIPE_THRESHOLD = 80;
@@ -102,29 +103,29 @@ const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(
         {/* PICK 표시 */}
         {isTop && (
           <motion.div
-            style={{ opacity: pickOpacity }}
-            className="absolute top-6 left-5 z-20 border-4 border-green-500 text-green-500
-                       font-black text-xl px-3 py-1 rounded-lg select-none pointer-events-none
-                       -rotate-12"
+            style={{ opacity: pickOpacity, border: '3px solid #FF4D2E', color: '#FF4D2E' }}
+            className="absolute top-6 left-5 z-20 font-black text-lg px-3 py-1 select-none pointer-events-none -rotate-12"
           >
-            PICK ✅
+            PICK
           </motion.div>
         )}
         {/* SKIP 표시 */}
         {isTop && (
           <motion.div
-            style={{ opacity: skipOpacity }}
-            className="absolute top-6 right-5 z-20 border-4 border-red-500 text-red-500
-                       font-black text-xl px-3 py-1 rounded-lg select-none pointer-events-none"
+            style={{ opacity: skipOpacity, border: '3px solid #8C8C8C', color: '#8C8C8C' }}
+            className="absolute top-6 right-5 z-20 font-black text-lg px-3 py-1 select-none pointer-events-none"
           >
-            SKIP ❌
+            SKIP
           </motion.div>
         )}
 
         {/* 카드 본체 */}
-        <div className="bg-white rounded-3xl shadow-xl overflow-hidden mx-2 select-none">
-          {/* 이미지 */}
-          <div className="w-full h-56 bg-gradient-to-br from-orange-50 to-pink-100 flex items-center justify-center overflow-hidden">
+        <div className="rounded-none overflow-hidden mx-2 select-none" style={{ background: '#FFFDF9', boxShadow: '0 4px 24px rgba(31,31,31,0.10)' }}>
+          {/* 이미지 영역 */}
+          <div
+            className="w-full h-56 flex items-center justify-center overflow-hidden"
+            style={{ background: '#F0EDEA' }}
+          >
             {restaurant.imageUrl ? (
               <img
                 src={restaurant.imageUrl}
@@ -139,11 +140,15 @@ const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(
 
           {/* 정보 */}
           <div className="px-6 py-5">
-            <h2 className="text-2xl font-bold mb-1 truncate">{restaurant.name}</h2>
-            <p className="text-gray-500 mb-2 text-sm">
+            <h2 className="text-2xl font-black mb-1 truncate" style={{ color: '#1F1F1F' }}>
+              {restaurant.name}
+            </h2>
+            <p className="text-sm mb-2" style={{ color: '#8C8C8C' }}>
               {restaurant.category.split('>').pop()?.trim()}
             </p>
-            <p className="text-sm text-gray-400">📍 {getDistanceText(restaurant.distance)}</p>
+            <p className="text-xs" style={{ color: '#8C8C8C' }}>
+              {getDistanceText(restaurant.distance)}
+            </p>
           </div>
         </div>
       </motion.div>
@@ -164,7 +169,6 @@ export default function SwipePage() {
   const [swipedRight, setSwipedRight] = useState<Restaurant[]>([]);
   const [isAnimating, setIsAnimating] = useState(false);
 
-  // 거리순 정렬 (한 번만 계산)
   const sortedRestaurants = (() => {
     return [...restaurants].sort((a, b) => {
       const distA = parseInt(a.distance || '999999');
@@ -181,7 +185,11 @@ export default function SwipePage() {
   useEffect(() => {
     if (restaurants.length === 0) {
       router.push('/location');
+      return;
     }
+    upsertRestaurants(restaurants).catch((err) =>
+      console.error('[Firestore upsert 실패]', err)
+    );
   }, [restaurants, router]);
 
   const handleSwipe = (dir: 'left' | 'right') => {
@@ -218,7 +226,6 @@ export default function SwipePage() {
     router.push('/tournament');
   };
 
-  // 현재 + 뒤 최대 2장 렌더
   const visibleCards = [0, 1, 2]
     .map((offset) => sortedRestaurants[currentIndex + offset])
     .filter(Boolean) as Restaurant[];
@@ -228,47 +235,49 @@ export default function SwipePage() {
   if (restaurants.length === 0) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ background: '#FFFDF9' }}>
       {/* 헤더 */}
-      <div className="flex items-center justify-between px-4 pt-5 pb-3">
-        <button
-          onClick={() => router.back()}
-          className="text-gray-500 hover:text-gray-800 font-medium"
-        >
-          ← 뒤로
-        </button>
-        <div className="text-center">
-          <span className="text-3xl font-black text-blue-700">{selectedCount}</span>
-          <span className="text-lg text-gray-500">/{total}</span>
-          <p className="text-xs text-gray-400 mt-0.5">선택됨</p>
+      <header style={{ borderBottom: '1px solid #F0EDEA' }}>
+        <div className="flex items-center justify-between px-6 pt-5 pb-3">
+          <button
+            onClick={() => router.back()}
+            className="text-sm hover:opacity-60 transition-opacity"
+            style={{ color: '#8C8C8C' }}
+          >
+            ← 뒤로
+          </button>
+          <div className="text-center">
+            <span className="text-3xl font-black" style={{ color: '#FF4D2E' }}>{selectedCount}</span>
+            <span className="text-lg" style={{ color: '#8C8C8C' }}>/{total}</span>
+            <p className="text-xs mt-0.5" style={{ color: '#8C8C8C' }}>선택됨</p>
+          </div>
+          <div className="w-14" />
         </div>
-        <div className="w-14" />
-      </div>
 
-      {/* 진행 바 */}
-      <div className="px-5 mb-5">
-        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-          <div
-            className="h-2 bg-blue-500 rounded-full transition-all duration-300"
-            style={{ width: `${progressPercent}%` }}
-          />
+        {/* 진행 바 */}
+        <div className="px-6 pb-4">
+          <div className="h-1 rounded-none overflow-hidden" style={{ background: '#F0EDEA' }}>
+            <div
+              className="h-1 transition-all duration-300"
+              style={{ width: `${progressPercent}%`, background: '#FF4D2E' }}
+            />
+          </div>
+          <p className="text-xs mt-1 text-center" style={{ color: '#8C8C8C' }}>
+            {currentIndex} / {total}
+          </p>
         </div>
-        <p className="text-xs text-gray-400 mt-1 text-center">
-          {currentIndex} / {total} 확인
-        </p>
-      </div>
+      </header>
 
       {/* 카드 영역 */}
-      <div className="flex-1 flex items-start justify-center px-4 pt-4">
+      <div className="flex-1 flex items-start justify-center px-4 pt-6">
         {allSwiped ? (
           <div className="text-center mt-12">
-            <div className="text-7xl mb-4">🎉</div>
-            <h2 className="text-2xl font-bold mb-2">모두 확인했어요!</h2>
-            <p className="text-gray-500">{selectedCount}개 선택됨</p>
+            <div className="text-5xl mb-4">✓</div>
+            <h2 className="text-2xl font-black mb-2" style={{ color: '#1F1F1F' }}>모두 확인했어요</h2>
+            <p style={{ color: '#8C8C8C' }}>{selectedCount}개 선택됨</p>
           </div>
         ) : (
           <div className="relative w-full max-w-sm" style={{ height: 380 }}>
-            {/* 카드 스택: 뒤쪽부터 렌더링 */}
             {[...visibleCards].reverse().map((restaurant, reversedIdx) => {
               const stackIndex = visibleCards.length - 1 - reversedIdx;
               return (
@@ -287,48 +296,41 @@ export default function SwipePage() {
       </div>
 
       {/* 하단 컨트롤 */}
-      <div className="px-5 pb-8 pt-4">
-        {/* ❌ / ✅ 버튼 */}
+      <div className="px-6 pb-8 pt-4">
         {!allSwiped && (
           <div className="flex items-center justify-center gap-10 mb-5">
             <button
               onClick={() => handleButtonSwipe('left')}
               disabled={isAnimating}
-              className="w-16 h-16 bg-white rounded-full shadow-lg flex items-center justify-center
-                         text-2xl hover:scale-110 active:scale-95 transition-transform
-                         disabled:opacity-40 disabled:pointer-events-none"
+              className="w-16 h-16 flex items-center justify-center text-base font-bold transition-all hover:opacity-70 active:scale-95 disabled:opacity-30"
+              style={{ background: '#F0EDEA', color: '#8C8C8C' }}
               aria-label="건너뛰기"
             >
-              ❌
+              SKIP
             </button>
             <button
               onClick={() => handleButtonSwipe('right')}
               disabled={isAnimating}
-              className="w-16 h-16 bg-white rounded-full shadow-lg flex items-center justify-center
-                         text-2xl hover:scale-110 active:scale-95 transition-transform
-                         disabled:opacity-40 disabled:pointer-events-none"
+              className="w-16 h-16 flex items-center justify-center text-base font-bold transition-all hover:opacity-80 active:scale-95 disabled:opacity-30"
+              style={{ background: '#FF4D2E', color: '#FFFDF9' }}
               aria-label="선택"
             >
-              ✅
+              PICK
             </button>
           </div>
         )}
 
-        {/* 토너먼트 시작 버튼 */}
         <button
           onClick={startTournament}
           disabled={!canStart}
-          className={`w-full py-4 rounded-2xl font-bold text-lg transition-all ${
-            canStart
-              ? 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 shadow-lg'
-              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-          }`}
+          className="w-full py-4 text-sm font-bold tracking-widest uppercase transition-opacity hover:opacity-80 disabled:opacity-30"
+          style={{ background: canStart ? '#1F1F1F' : '#F0EDEA', color: canStart ? '#FFFDF9' : '#8C8C8C' }}
         >
           {selectedCount === 0
             ? '아직 선택한 식당이 없어요'
             : selectedCount === 1
-            ? '바로 우승! (1개 선택됨) 🏆'
-            : `토너먼트 시작 (${selectedCount}개) →`}
+            ? '바로 우승 확정 (1개)'
+            : `토너먼트 시작 (${selectedCount}개)`}
         </button>
       </div>
     </div>

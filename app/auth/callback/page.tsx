@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signInWithCustomToken } from 'firebase/auth';
 import { auth } from '@/lib/firebase/client';
+import { upsertUser } from '@/lib/firebase/users';
 import { useAuthStore } from '@/lib/store/auth';
 
 export default function AuthCallbackPage() {
@@ -30,6 +31,9 @@ export default function AuthCallbackPage() {
         const credential = await signInWithCustomToken(auth, token);
         const { uid } = credential.user;
         setUser({ uid, nickname });
+        upsertUser({ uid, nickname }).catch((err) =>
+          console.error('[Firestore 유저 저장 실패]', err)
+        );
         router.replace('/');
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);
