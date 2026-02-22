@@ -86,13 +86,12 @@ export default function LocationPage() {
             id: doc.id,
             name: doc.place_name,
             category: doc.category_name,
-            address: doc.address_name,
-            roadAddress: doc.road_address_name || doc.address_name,
+            address: doc.road_address_name || doc.address_name,
             phone: doc.phone || '',
-            x: doc.x,
-            y: doc.y,
+            lat: parseFloat(doc.y),
+            lng: parseFloat(doc.x),
+            kakaoUrl: doc.place_url || '',
             distance: doc.distance,
-            placeUrl: doc.place_url,
             isBye: false,
           }))
         );
@@ -172,20 +171,20 @@ export default function LocationPage() {
               <p className="text-xs font-bold tracking-widest uppercase" style={{ color: '#1F1F1F' }}>음식 종류</p>
               <span className="text-xs" style={{ color: '#8C8C8C' }}>{categories.length}개 선택</span>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-x-3 gap-y-2">
               {CATEGORIES.map((cat) => {
                 const selected = categories.includes(cat);
                 return (
                   <button
                     key={cat}
                     onClick={() => toggleCategory(cat)}
-                    className="px-4 py-2 text-sm font-medium transition-all"
+                    className="text-sm font-medium transition-all hover:opacity-80"
                     style={selected
-                      ? { background: '#FF4D2E', color: '#FFFDF9', border: '1.5px solid #FF4D2E' }
-                      : { background: 'transparent', color: '#8C8C8C', border: '1.5px solid #F0EDEA' }
+                      ? { color: '#FF4D2E', fontWeight: 700 }
+                      : { color: '#8C8C8C', fontWeight: 400 }
                     }
                   >
-                    {cat}
+                    #{cat}
                   </button>
                 );
               })}

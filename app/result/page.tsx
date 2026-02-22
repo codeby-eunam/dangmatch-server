@@ -3,20 +3,32 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTournamentStore } from '@/lib/store/tournament';
+import { recordWin, recordTournamentHistory } from '@/lib/firebase/stats';
+import { useAuthStore } from '@/lib/store/auth';
 
 export default function ResultPage() {
   const router = useRouter();
-  const { finalWinner, reset } = useTournamentStore();
+  const { finalWinner, swipedRestaurants, location, reset } = useTournamentStore();
+  const { user } = useAuthStore();
 
   useEffect(() => {
     if (!finalWinner) {
       router.push('/location');
+      return;
     }
-  }, [finalWinner, router]);
+    // 우승 식당 winCount + winRate 갱신
+    recordWin(finalWinner.id);
+    // 토너먼트 히스토리 저장 (로그인 유저만)
+    recordTournamentHistory({
+      uid: user?.uid ?? null,
+      winnerId: finalWinner.id,
+      winnerName: finalWinner.name,
+      participants: swipedRestaurants.map((r) => r.id),
+      location: location?.address ?? (location ? `${location.lat},${location.lng}` : ''),
+    });
+  }, [finalWinner, router]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!finalWinner) {
-    return null;
-  }
+  if (!finalWinner) return null;
 
   const handleRestart = () => {
     reset();
@@ -77,9 +89,9 @@ export default function ResultPage() {
 
           {/* 액션 버튼 */}
           <div className="space-y-2">
-            {finalWinner.placeUrl && (
+            {finalWinner.kakaoUrl && (
               <a
-                href={finalWinner.placeUrl}
+                href={finalWinner.kakaoUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block w-full py-4 text-center text-sm font-bold tracking-widest uppercase transition-opacity hover:opacity-80"

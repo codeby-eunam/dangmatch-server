@@ -126,9 +126,9 @@ const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(
             className="w-full h-56 flex items-center justify-center overflow-hidden"
             style={{ background: '#F0EDEA' }}
           >
-            {restaurant.imageUrl ? (
+            {restaurant.images?.[0] ? (
               <img
-                src={restaurant.imageUrl}
+                src={restaurant.images[0]}
                 alt={restaurant.name}
                 className="w-full h-full object-cover"
                 draggable={false}
@@ -187,6 +187,7 @@ export default function SwipePage() {
       router.push('/location');
       return;
     }
+    // rules: allow create, update: if true → 인증 불필요
     upsertRestaurants(restaurants).catch((err) =>
       console.error('[Firestore upsert 실패]', err)
     );

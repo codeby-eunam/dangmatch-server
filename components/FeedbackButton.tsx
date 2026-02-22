@@ -17,14 +17,25 @@ export default function FeedbackButton() {
   const handleSubmit = async () => {
     if (!message.trim()) return;
     setStatus('sending');
+    const payload = {
+      type,
+      message: message.trim(),
+      uid: user?.uid ?? null,
+      nickname: user?.nickname ?? null,
+    };
     try {
+      // 1) Firestore 저장
       await addDoc(collection(db, 'feedback'), {
-        type,
-        message: message.trim(),
-        uid: user?.uid ?? null,
-        nickname: user?.nickname ?? null,
+        ...payload,
         createdAt: serverTimestamp(),
       });
+      // 2) 이메일 알림 (fire-and-forget — 실패해도 UX 영향 없음)
+      fetch('/api/feedback/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }).catch((err) => console.error('[이메일 알림 실패]', err));
+
       setStatus('done');
       setMessage('');
       setTimeout(() => {
