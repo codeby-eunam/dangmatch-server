@@ -17,25 +17,26 @@ export async function GET(request: NextRequest) {
   }
 
   const query = '맛집';
-
   try {
-    const url = `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(query)}&x=${lng}&y=${lat}&radius=${radius}&size=15`;
+	const pages = await Promise.all([1, 2, 3].map(page =>
+		fetch(
+			`https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(query)}&x=${lng}&y=${lat}&radius=${radius}&size=15&page=${page}`,
+			{ headers: { Authorization: `KakaoAK ${apiKey}` }, cache: 'no-store' }
+		).then(r => r.json())
+	));
 
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `KakaoAK ${apiKey}`
-      },
-      cache: 'no-store'
-    });
+	const seen = new Set();
+	const documents = pages
+		.flatMap(data => data.documents || [])
+		.filter(doc => {
+			if (seen.has(doc.id)) return false;
+			seen.add(doc.id);
+			return true;
+		});
 
-    if (!response.ok) {
-      throw new Error(`Kakao API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log(`✅ 식당 ${data.documents.length}개 찾음`);
+    console.log(`✅ 식당 ${documents.length}개 찾음`);
     
-    return Response.json(data);
+    return Response.json({documents});
   } catch (error) {
     console.error('❌ API 에러:', error);
     return Response.json(
