@@ -9,7 +9,8 @@ const BYE_CARD: Restaurant = {id: 'bye', name: 'BYE', category: '', address: '',
 
 export default function TournamentPage() {
 	const router = useRouter();
-	const { restaurants, setFinalWinner } = useTournamentStore();
+	const { restaurants: allRestaurants, swipedRestaurants, setFinalWinner } = useTournamentStore();
+	const restaurants = swipedRestaurants.length > 0 ? swipedRestaurants : allRestaurants;
 
 	const [currentRound, setCurrentRound] = useState<Restaurant[]>([]);
 	const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
@@ -30,10 +31,8 @@ export default function TournamentPage() {
 	}, []);
 
 	const getRoundName = () => {
-		const totalMatches = currentRound.length / 2;
-		if (totalMatches === 1) return '결승전';
-		if (totalMatches === 2) return '준결승전';
-		return `라운드 ${Math.log2(currentRound.length)}`;
+		if (currentRound.length === 2) return '결승전';
+		return `라운드 ${currentRound.length}`;
 	};
 
 	const totalMatches = currentRound.length / 2;
