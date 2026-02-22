@@ -1,10 +1,11 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import KakaoLoginButton from '@/components/KakaoLoginButton';
 import { useAuthStore } from '@/lib/store/auth';
 
-export default function HomePage() {
+function HomePageInner() {
   const router = useRouter();
   const { user } = useAuthStore();
   const searchParams = useSearchParams();
@@ -71,5 +72,13 @@ export default function HomePage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <Suspense>
+      <HomePageInner />
+    </Suspense>
   );
 }

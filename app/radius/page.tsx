@@ -55,12 +55,11 @@ export default function RadiusPage() {
             name: doc.place_name,
             category: doc.category_name,
             address: doc.address_name,
-            roadAddress: doc.road_address_name || doc.address_name,
             phone: doc.phone || '',
-            x: doc.x,
-            y: doc.y,
+            lat: parseFloat(doc.y),
+            lng: parseFloat(doc.x),
             distance: doc.distance,
-            placeUrl: doc.place_url,
+            kakaoUrl: doc.place_url,
           }))
         );
         router.push('/swipe');
