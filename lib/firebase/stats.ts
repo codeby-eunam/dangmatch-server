@@ -46,7 +46,7 @@ export async function recordWin(restaurantId: string) {
 
 /**
  * 토너먼트 결과를 tournament_history 컬렉션에 저장.
- * uid가 없으면(비로그인) 건너뜀 (rules: request.auth != null).
+ * 비로그인 유저도 기록 가능 (uid: null 허용).
  */
 export function recordTournamentHistory({
   uid,
@@ -61,7 +61,6 @@ export function recordTournamentHistory({
   participants: string[];
   location: string;
 }) {
-  if (!uid) return;
   fire(
     addDoc(collection(db, 'tournament_history'), {
       uid,
