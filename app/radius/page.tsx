@@ -13,8 +13,8 @@ const RADIUS_OPTIONS = [
 
 export default function RadiusPage() {
   const router = useRouter();
-  const { location, setRadius, setRestaurants } = useTournamentStore();
-  
+  const { location, categories, setRadius, setRestaurants } = useTournamentStore();
+
   const [selectedRadius, setSelectedRadius] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -29,33 +29,45 @@ export default function RadiusPage() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        `/api/kakao/nearby?lat=${location.lat}&lng=${location.lng}&radius=${selectedRadius}`
+      const maxPages = Math.max(1, Math.ceil(3 / categories.length));
+      const results = await Promise.all(
+        categories.map((cat) =>
+          fetch(
+            `/api/kakao/nearby?lat=${location.lat}&lng=${location.lng}&radius=${selectedRadius}&category=${encodeURIComponent(cat)}&maxPages=${maxPages}`
+          ).then((r) => r.json())
+        )
       );
-      const data = await response.json();
 
-      if (data.documents && data.documents.length > 0) {
-        const restaurants = data.documents.map((doc: any) => ({
-          id: doc.id,
-          name: doc.place_name,
-          category: doc.category_name,
-          address: doc.address_name,
-          roadAddress: doc.road_address_name || doc.address_name,
-          phone: doc.phone || '',
-          x: doc.x,
-          y: doc.y,
-          distance: doc.distance,
-          placeUrl: doc.place_url
-        }));
+      const seen = new Set<string>();
+      const documents = results
+        .flatMap((data) => data.documents || [])
+        .filter((doc) => {
+          if (seen.has(doc.id)) return false;
+          seen.add(doc.id);
+          return true;
+        });
 
+      if (documents.length > 0) {
         setRadius(selectedRadius);
-        setRestaurants(restaurants);
-        
-        router.push('/restaurants');
+        setRestaurants(
+          documents.map((doc: any) => ({
+            id: doc.id,
+            name: doc.place_name,
+            category: doc.category_name,
+            address: doc.address_name,
+            roadAddress: doc.road_address_name || doc.address_name,
+            phone: doc.phone || '',
+            x: doc.x,
+            y: doc.y,
+            distance: doc.distance,
+            placeUrl: doc.place_url,
+          }))
+        );
+        router.push(documents.length > 16 ? '/swipe' : '/restaurants');
       } else {
         alert('주변에 식당이 없습니다. 반경을 늘려보세요.');
       }
-    } catch (error) {
+    } catch {
       alert('검색 실패');
     } finally {
       setLoading(false);
