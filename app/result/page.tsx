@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTournamentStore } from '@/lib/store/tournament';
 import { recordWin, recordTournamentHistory } from '@/lib/firebase/stats';
+import { recordSchoolWin } from '@/lib/firebase/school-feeds';
 import { useAuthStore } from '@/lib/store/auth';
 import ListSelectorModal from '@/components/ListSelectorModal';
 
@@ -27,6 +28,10 @@ export default function ResultPage() {
       participants: swipedRestaurants.map((r) => r.id),
       location: location?.address ?? (location ? `${location.lat},${location.lng}` : ''),
     });
+    // 로그인 유저 + 학교 설정된 경우 학교 피드에 우승 기록
+    if (user?.uid && user.school?.domain) {
+      recordSchoolWin(user.school.domain, user.uid, finalWinner);
+    }
   }, [finalWinner, router]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!finalWinner) return null;

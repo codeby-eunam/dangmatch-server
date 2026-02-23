@@ -1,3 +1,26 @@
+export interface School {
+  name: string;    // 대학교 전체 명칭 (예: "연세대학교")
+  domain: string;  // Firestore 경로용 식별자 (예: "연세대학교") — school_feeds/{domain}
+}
+
+export interface SchoolFeedRestaurant {
+  restaurant: Restaurant;
+  winCount: number;
+  likeCount: number;
+  contributedBy: string[]; // uid 배열 (중복 제거용)
+  lastUpdated: unknown;    // serverTimestamp
+}
+
+export interface SchoolFeedList {
+  id?: string;
+  title: string;
+  restaurants: Restaurant[];
+  createdBy: string;
+  isPublic: boolean;
+  shareToken: string;
+  createdAt: unknown;
+}
+
 export interface Restaurant {
   id: string;        // kakaoPlaceId — Firestore 문서 ID와 동일
   name: string;

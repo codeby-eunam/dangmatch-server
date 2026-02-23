@@ -53,5 +53,29 @@ service cloud.firestore {
       allow update, delete: if request.auth != null
         && request.auth.uid == resource.data.ownerUid;
     }
+
+    // ── 학교 피드 ─────────────────────────────────────────────────────────────
+    // 맛집 랭킹: 읽기 누구나, 쓰기는 로그인 유저
+    match /school_feeds/{schoolDomain}/restaurants/{restaurantId} {
+      allow read: if true;
+      allow create, update: if request.auth != null;
+    }
+
+    // 공유 리스트: 읽기 누구나, 작성자만 수정/삭제
+    match /school_feeds/{schoolDomain}/lists/{listId} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && request.auth.uid == request.resource.data.createdBy;
+      allow update, delete: if request.auth != null
+        && request.auth.uid == resource.data.createdBy;
+    }
+
+    // ── 학교 변경 건의 ────────────────────────────────────────────────────────
+    // 읽기: 닫힘 (Firebase 콘솔에서 관리자가 직접 확인)
+    // 쓰기: 로그인 유저만
+    match /reports/{docId} {
+      allow read: if false;
+      allow create: if request.auth != null;
+    }
   }
 }

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useTournamentStore } from '@/lib/store/tournament';
 import { upsertRestaurants } from '@/lib/firebase/restaurants';
+import { recordSchoolLike } from '@/lib/firebase/school-feeds';
 import { useAuthStore } from '@/lib/store/auth';
 import ListSelectorModal from '@/components/ListSelectorModal';
 import type { Restaurant } from '@/types';
@@ -247,6 +248,10 @@ export default function SwipePage() {
     const restaurant = sortedRestaurants[currentIndex];
     if (dir === 'right' && restaurant) {
       setSwipedRight((prev) => [...prev, restaurant]);
+      // 로그인 유저 + 학교 설정 시 학교 피드에 PICK 기록
+      if (user?.uid && user.school?.domain) {
+        recordSchoolLike(user.school.domain, user.uid, restaurant);
+      }
     }
     setCurrentIndex((prev) => prev + 1);
     setIsAnimating(false);

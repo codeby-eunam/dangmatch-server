@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { Suspense, useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   collection,
@@ -33,7 +33,7 @@ interface CardState {
 
 const PAGE_SIZE = 20;
 
-export default function AdminPage() {
+function AdminContent() {
   const searchParams = useSearchParams();
   const secret = searchParams.get('s') ?? '';
   const authed = !!secret;
@@ -377,5 +377,19 @@ export default function AdminPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AdminPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center" style={{ background: '#1A1A1A' }}>
+          <p className="text-sm font-bold" style={{ color: '#8C8C8C' }}>로딩 중...</p>
+        </div>
+      }
+    >
+      <AdminContent />
+    </Suspense>
   );
 }
