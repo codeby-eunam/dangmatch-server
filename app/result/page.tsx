@@ -3,20 +3,30 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTournamentStore } from '@/lib/store/tournament';
+import { recordWin, recordTournamentHistory } from '@/lib/firebase/stats';
+import { useAuthStore } from '@/lib/store/auth';
 
 export default function ResultPage() {
   const router = useRouter();
-  const { finalWinner, reset } = useTournamentStore();
+  const { finalWinner, swipedRestaurants, location, reset } = useTournamentStore();
+  const { user } = useAuthStore();
 
   useEffect(() => {
     if (!finalWinner) {
       router.push('/location');
+      return;
     }
-  }, [finalWinner, router]);
+    recordWin(finalWinner.id);
+    recordTournamentHistory({
+      uid: user?.uid ?? null,
+      winnerId: finalWinner.id,
+      winnerName: finalWinner.name,
+      participants: swipedRestaurants.map((r) => r.id),
+      location: location?.address ?? (location ? `${location.lat},${location.lng}` : ''),
+    });
+  }, [finalWinner, router]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!finalWinner) {
-    return null;
-  }
+  if (!finalWinner) return null;
 
   const handleRestart = () => {
     reset();
@@ -24,46 +34,165 @@ export default function ResultPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
-        <div className="text-6xl mb-4">🏆</div>
-        <h1 className="text-3xl font-bold mb-2">우승!</h1>
-        <h2 className="text-2xl font-semibold mb-4">{finalWinner.name}</h2>
-        
-        <div className="bg-gray-50 rounded-lg p-4 mb-6">
-          <p className="text-sm text-gray-600 mb-1">
-            {finalWinner.category.split('>').pop()?.trim()}
-          </p>
-          <p className="text-sm text-gray-500 mb-2">
-            📍 {finalWinner.address}
-          </p>
-          {finalWinner.phone && (
-            <p className="text-sm text-gray-500">
-              📞 {finalWinner.phone}
-            </p>
-          )}
+    <div
+      className="min-h-screen flex flex-col"
+      style={{ background: 'linear-gradient(135deg, #FF9900 0%, #FF6600 100%)' }}
+    >
+      {/* 헤더 */}
+      <header className="flex items-center justify-between px-6 py-4">
+        <div className="flex items-center gap-2">
+          <div
+            className="w-7 h-7 flex items-center justify-center text-xs font-black"
+            style={{ background: 'rgba(0,0,0,0.2)', color: '#FFFFFF', borderRadius: 4 }}
+          >
+            🏆
+          </div>
+          <span className="text-xs font-black tracking-widest uppercase" style={{ color: 'rgba(255,255,255,0.8)' }}>
+            토너먼트 결과
+          </span>
+        </div>
+        <button
+          onClick={handleRestart}
+          className="w-8 h-8 flex items-center justify-center font-black text-lg transition-opacity hover:opacity-70"
+          style={{ background: 'rgba(0,0,0,0.2)', color: '#FFFFFF', borderRadius: '50%' }}
+        >
+          ✕
+        </button>
+      </header>
+
+      {/* 메인 */}
+      <main className="flex-1 flex flex-col items-center justify-center px-6 py-8">
+        {/* 축하 텍스트 */}
+        <h1
+          className="font-black text-white text-center mb-2 leading-tight"
+          style={{ fontSize: 'clamp(2.5rem, 8vw, 4rem)', textShadow: '2px 2px 0 rgba(0,0,0,0.15)' }}
+        >
+          축하합니다!
+        </h1>
+        <p className="text-sm text-white mb-8 opacity-90 font-bold">
+          최종 우승 메뉴를 찾았습니다
+        </p>
+
+        {/* 트로피 + 챔피언 배지 */}
+        <div className="text-center mb-6">
+          <div className="text-7xl mb-3">🏆</div>
+          <div
+            className="inline-block text-xs font-black tracking-widest uppercase px-4 py-1.5"
+            style={{ background: '#1A1A1A', color: '#FF9900', borderRadius: 2 }}
+          >
+            챔피언
+          </div>
         </div>
 
-        <div className="space-y-3">
-          {finalWinner.placeUrl && (
+        {/* 우승 카드 */}
+        <div
+          className="w-full max-w-sm overflow-hidden"
+          style={{
+            background: '#FFFFFF',
+            borderRadius: 8,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
+          }}
+        >
+          {/* 카드 상단 레이블 */}
+          <div
+            className="px-5 py-3 flex items-center justify-between"
+            style={{ borderBottom: '1px solid #F0EDEA' }}
+          >
+            <span className="text-xs font-black tracking-widest uppercase" style={{ color: '#FF9900' }}>
+              OVERALL WINNER
+            </span>
+            <span className="text-xs" style={{ color: '#8C8C8C' }}>
+              {finalWinner.category.split('>').pop()?.trim()}
+            </span>
+          </div>
+
+          {/* 이미지 */}
+          {finalWinner.images?.[0] ? (
+            <div className="w-full overflow-hidden" style={{ height: 200 }}>
+              <img
+                src={finalWinner.images[0]}
+                alt={finalWinner.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div
+              className="w-full flex items-center justify-center"
+              style={{ height: 160, background: '#F5EDD0' }}
+            >
+              <span className="text-7xl">🏆</span>
+            </div>
+          )}
+
+          {/* 정보 */}
+          <div className="px-5 py-5">
+            <h2
+              className="font-black mb-2 leading-tight"
+              style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)', color: '#1A1A1A' }}
+            >
+              {finalWinner.name}
+            </h2>
+
+            {/* 별점 (장식) */}
+            <div className="flex items-center gap-1 mb-3">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <span key={i} style={{ color: '#FF9900', fontSize: 14 }}>★</span>
+              ))}
+              <span className="text-xs ml-1" style={{ color: '#8C8C8C' }}>최고의 선택</span>
+            </div>
+
+            {/* 주소 */}
+            <div className="flex items-start gap-2">
+              <span style={{ color: '#FF9900', fontSize: 14, marginTop: 1 }}>📍</span>
+              <p className="text-sm leading-relaxed" style={{ color: '#5C5C5C' }}>
+                {finalWinner.address}
+              </p>
+            </div>
+
+            {finalWinner.phone && (
+              <div className="flex items-center gap-2 mt-2">
+                <span style={{ color: '#FF9900', fontSize: 14 }}>📞</span>
+                <p className="text-sm" style={{ color: '#5C5C5C' }}>{finalWinner.phone}</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 액션 버튼 */}
+        <div className="w-full max-w-sm flex gap-2 mt-4">
+          {finalWinner.kakaoUrl && (
             <a
-              href={finalWinner.placeUrl}
+              href={finalWinner.kakaoUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="block w-full py-3 bg-yellow-400 text-gray-900 rounded-xl font-semibold hover:bg-yellow-500"
+              className="flex-1 py-4 text-center text-sm font-black tracking-wider uppercase transition-opacity hover:opacity-80"
+              style={{ background: '#1A1A1A', color: '#FFFFFF', borderRadius: 4 }}
             >
-              카카오맵에서 보기
+              🗺 지도 보기
             </a>
           )}
-          
           <button
-            onClick={handleRestart}
-            className="w-full py-3 bg-gray-800 text-white rounded-xl font-semibold hover:bg-gray-900"
+            onClick={() => {
+              if (navigator.share) {
+                navigator.share({ title: `오늘의 맛집: ${finalWinner.name}`, url: window.location.href });
+              }
+            }}
+            className="flex-1 py-4 text-sm font-black tracking-wider uppercase transition-opacity hover:opacity-80"
+            style={{ background: 'rgba(0,0,0,0.2)', color: '#FFFFFF', borderRadius: 4 }}
           >
-            처음부터 다시
+            결과 공유
           </button>
         </div>
-      </div>
+
+        {/* 재시작 링크 */}
+        <button
+          onClick={handleRestart}
+          className="mt-5 text-sm font-bold transition-opacity hover:opacity-70"
+          style={{ color: 'rgba(255,255,255,0.8)' }}
+        >
+          ↩ 다시 토너먼트 하기
+        </button>
+      </main>
     </div>
   );
 }

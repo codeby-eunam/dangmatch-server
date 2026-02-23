@@ -43,7 +43,7 @@ export default function AreaSearchPage() {
         }));
 
         setRestaurants(restaurants);
-        router.push('/restaurants');
+        router.push('/swipe');
       } else {
         alert('해당 지역에 식당이 없습니다.');
         router.push('/location');

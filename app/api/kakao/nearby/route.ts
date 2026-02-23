@@ -23,7 +23,6 @@ export async function GET(request: NextRequest) {
   }
 
   const apiKey = process.env.KAKAO_REST_API_KEY;
-
   if (!apiKey) {
     return Response.json({ error: 'API 키 설정 필요' }, { status: 500 });
   }
