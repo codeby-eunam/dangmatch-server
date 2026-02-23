@@ -1,15 +1,18 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTournamentStore } from '@/lib/store/tournament';
 import { recordWin, recordTournamentHistory } from '@/lib/firebase/stats';
 import { useAuthStore } from '@/lib/store/auth';
+import ListSelectorModal from '@/components/ListSelectorModal';
 
 export default function ResultPage() {
   const router = useRouter();
   const { finalWinner, swipedRestaurants, location, reset } = useTournamentStore();
   const { user } = useAuthStore();
+  const [listModalOpen, setListModalOpen] = useState(false);
+  const [savedToast, setSavedToast] = useState<string | null>(null);
 
   useEffect(() => {
     if (!finalWinner) {
@@ -184,6 +187,15 @@ export default function ResultPage() {
           </button>
         </div>
 
+        {/* 즐겨찾기 저장 버튼 */}
+        <button
+          onClick={() => setListModalOpen(true)}
+          className="w-full max-w-sm mt-2 py-4 text-sm font-black tracking-wider uppercase transition-opacity hover:opacity-80"
+          style={{ background: 'rgba(255,255,255,0.15)', color: '#FFFFFF', borderRadius: 4, border: '2px solid rgba(255,255,255,0.4)' }}
+        >
+          ★ 리스트에 저장
+        </button>
+
         {/* 재시작 링크 */}
         <button
           onClick={handleRestart}
@@ -193,6 +205,29 @@ export default function ResultPage() {
           ↩ 다시 토너먼트 하기
         </button>
       </main>
+
+      {/* 즐겨찾기 리스트 선택 모달 */}
+      {listModalOpen && (
+        <ListSelectorModal
+          restaurant={finalWinner}
+          onClose={() => setListModalOpen(false)}
+          onSaved={(listTitle) => {
+            setListModalOpen(false);
+            setSavedToast(`"${listTitle}" 에 저장됨`);
+            setTimeout(() => setSavedToast(null), 2500);
+          }}
+        />
+      )}
+
+      {/* 저장 완료 토스트 */}
+      {savedToast && (
+        <div
+          className="fixed bottom-10 left-1/2 -translate-x-1/2 px-5 py-3 text-xs font-black tracking-wide z-50 pointer-events-none"
+          style={{ background: '#1A1A1A', color: '#FF9900', borderRadius: 2, whiteSpace: 'nowrap' }}
+        >
+          ★ {savedToast}
+        </div>
+      )}
     </div>
   );
 }

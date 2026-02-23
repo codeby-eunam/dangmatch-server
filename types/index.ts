@@ -25,3 +25,21 @@ export interface TournamentMatch {
   restaurant2: Restaurant | null;
   winner?: Restaurant;
 }
+
+export interface RestaurantList {
+  id: string;
+  title: string;
+  restaurants: Restaurant[];
+  isPublic: boolean;
+  shareToken: string;
+  createdAt: string;   // ISO string (serverTimestamp().toDate().toISOString())
+  updatedAt: string;
+}
+
+export interface SharedList {
+  ownerUid: string;
+  listId: string;
+  title: string;
+  restaurants: Restaurant[];
+  createdAt: string;
+}
