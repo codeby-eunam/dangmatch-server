@@ -4,13 +4,13 @@ import { useEffect, useRef, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signInWithCustomToken } from 'firebase/auth';
 import { auth } from '@/lib/firebase/client';
-import { upsertUser } from '@/lib/firebase/users';
+import { upsertUser, getUserSchool } from '@/lib/firebase/users';
 import { useAuthStore } from '@/lib/store/auth';
 
 function AuthCallbackInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { setUser, setLoading } = useAuthStore();
+  const { setUser, setSchool, setLoading } = useAuthStore();
   const processed = useRef(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -31,10 +31,22 @@ function AuthCallbackInner() {
         const credential = await signInWithCustomToken(auth, token);
         const { uid } = credential.user;
         setUser({ uid, nickname });
+
+        // 유저 Firestore 저장 (school 필드 건드리지 않음)
         upsertUser({ uid, nickname }).catch((err) =>
           console.error('[Firestore 유저 저장 실패]', err)
         );
-        router.replace('/');
+
+        // 학교 설정 여부 확인
+        const school = await getUserSchool(uid);
+        if (school) {
+          // 이미 설정된 학교를 스토어에도 반영
+          setSchool(school);
+          router.replace('/');
+        } else {
+          // 최초 로그인 or 학교 미설정 → 학교 선택 화면
+          router.replace('/school-select');
+        }
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);
         console.error('[Firebase 로그인 오류]', err);
@@ -43,7 +55,7 @@ function AuthCallbackInner() {
         setLoading(false);
       }
     })();
-  }, [searchParams, router, setUser, setLoading]);
+  }, [searchParams, router, setUser, setSchool, setLoading]);
 
   if (errorMsg) {
     return (

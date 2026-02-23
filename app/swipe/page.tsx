@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation';
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useTournamentStore } from '@/lib/store/tournament';
 import { upsertRestaurants } from '@/lib/firebase/restaurants';
+import { recordSchoolLike } from '@/lib/firebase/school-feeds';
 import { useAuthStore } from '@/lib/store/auth';
+import ListSelectorModal from '@/components/ListSelectorModal';
 import type { Restaurant } from '@/types';
 
 const SWIPE_THRESHOLD = 80;
@@ -199,6 +201,9 @@ export default function SwipePage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [swipedRight, setSwipedRight] = useState<Restaurant[]>([]);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [listModalRestaurant, setListModalRestaurant] = useState<Restaurant | null>(null);
+  const [savedToast, setSavedToast] = useState<string | null>(null);
+  const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
 
   const sortedRestaurants = (() => {
     return [...restaurants].sort((a, b) => {
@@ -223,10 +228,30 @@ export default function SwipePage() {
     );
   }, [restaurants, router]);
 
+  useEffect(() => {
+    if (!allSwiped) return;
+    setRedirectCountdown(5);
+    const interval = setInterval(() => {
+      setRedirectCountdown((prev) => {
+        if (prev === null || prev <= 1) {
+          clearInterval(interval);
+          router.push('/location');
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [allSwiped, router]);
+
   const handleSwipe = (dir: 'left' | 'right') => {
     const restaurant = sortedRestaurants[currentIndex];
     if (dir === 'right' && restaurant) {
       setSwipedRight((prev) => [...prev, restaurant]);
+      // 로그인 유저 + 학교 설정 시 학교 피드에 PICK 기록
+      if (user?.uid && user.school?.domain) {
+        recordSchoolLike(user.school.domain, user.uid, restaurant);
+      }
     }
     setCurrentIndex((prev) => prev + 1);
     setIsAnimating(false);
@@ -271,12 +296,14 @@ export default function SwipePage() {
       <header style={{ borderBottom: '1px solid #E8DDB8' }}>
         <div className="flex items-center justify-between px-6 pt-5 pb-3">
           <div className="flex items-center gap-2">
-            <div
-              className="w-7 h-7 flex items-center justify-center text-xs font-black"
+            <button
+              onClick={() => router.back()}
+              className="w-7 h-7 flex items-center justify-center text-xs font-black hover:opacity-70 transition-opacity"
               style={{ background: '#FF9900', color: '#FFFFFF', borderRadius: 2 }}
+              aria-label="뒤로가기"
             >
               ✕
-            </div>
+            </button>
             <span className="text-xs font-black tracking-widest uppercase" style={{ color: '#1A1A1A' }}>
               음식 선택
             </span>
@@ -290,17 +317,23 @@ export default function SwipePage() {
               MENU
             </button>
             <button
+              onClick={() => {
+                setSavedToast('개발중!');
+                setTimeout(() => setSavedToast(null), 2500);
+              }}
               className="text-xs font-black hover:opacity-60 transition-opacity tracking-widest uppercase"
               style={{ color: '#8C8C8C' }}
             >
               HISTORY
             </button>
-            <div
-              className="w-8 h-8 flex items-center justify-center font-black text-sm"
+            <button
+              onClick={() => router.push('/mypage')}
+              className="w-8 h-8 flex items-center justify-center font-black text-sm transition-opacity hover:opacity-70"
               style={{ background: '#1A1A1A', color: '#FFFFFF', borderRadius: '50%' }}
+              aria-label="마이페이지"
             >
               {user ? user.nickname?.[0]?.toUpperCase() || '?' : '?'}
-            </div>
+            </button>
           </div>
         </div>
       </header>
@@ -331,8 +364,13 @@ export default function SwipePage() {
             >
               ✓
             </div>
-            <h2 className="text-2xl font-black mb-2" style={{ color: '#FFFFFF' }}>모두 확인했어요</h2>
+            <h2 className="text-2xl font-black mb-2" style={{ color: '#1A1A1A' }}>모두 확인했어요</h2>
             <p style={{ color: '#8C8C8C' }}>{selectedCount}개 선택됨</p>
+            {redirectCountdown !== null && (
+              <p className="mt-4 text-xs font-bold" style={{ color: '#8C8C8C' }}>
+                {redirectCountdown}초 후 위치 선택으로 돌아갑니다
+              </p>
+            )}
           </div>
         ) : (
           <div className="relative w-full max-w-sm" style={{ height: 380 }}>
@@ -367,7 +405,7 @@ export default function SwipePage() {
               >
                 ✕
               </button>
-              <span className="text-xs" style={{ color: '#8C8C8C' }}>삭제 (빨강)</span>
+              <span className="text-xs" style={{ color: '#8C8C8C' }}>삭제</span>
             </div>
             <div className="flex flex-col items-center gap-1">
               <button
@@ -379,13 +417,17 @@ export default function SwipePage() {
               >
                 ✓
               </button>
-              <span className="text-xs font-bold" style={{ color: '#FF9900' }}>선택 (초록)</span>
+              <span className="text-xs font-bold" style={{ color: '#FF9900' }}>선택</span>
             </div>
             <div className="flex flex-col items-center gap-1">
               <button
-                onClick={() => {}}
-                className="w-14 h-14 flex items-center justify-center text-xl transition-all hover:opacity-70 active:scale-95 rounded-full"
-                style={{ background: '#FFFFFF', color: '#8C8C8C', border: '2px solid #E8DDB8' }}
+                onClick={() => {
+                  const current = sortedRestaurants[currentIndex];
+                  if (current) setListModalRestaurant(current);
+                }}
+                disabled={isAnimating}
+                className="w-14 h-14 flex items-center justify-center text-xl transition-all hover:opacity-70 active:scale-95 disabled:opacity-30 rounded-full"
+                style={{ background: '#FFFFFF', color: '#FF9900', border: '2px solid #E8DDB8' }}
                 aria-label="즐겨찾기"
               >
                 ★
@@ -438,6 +480,29 @@ export default function SwipePage() {
           ))}
         </div>
       </div>
+
+      {/* 즐겨찾기 리스트 선택 모달 */}
+      {listModalRestaurant && (
+        <ListSelectorModal
+          restaurant={listModalRestaurant}
+          onClose={() => setListModalRestaurant(null)}
+          onSaved={(listTitle) => {
+            setListModalRestaurant(null);
+            setSavedToast(`"${listTitle}" 에 저장됨`);
+            setTimeout(() => setSavedToast(null), 2500);
+          }}
+        />
+      )}
+
+      {/* 저장 완료 토스트 */}
+      {savedToast && (
+        <div
+          className="fixed bottom-24 left-1/2 -translate-x-1/2 px-5 py-3 text-xs font-black tracking-wide z-50 pointer-events-none"
+          style={{ background: '#1A1A1A', color: '#FF9900', borderRadius: 2, whiteSpace: 'nowrap' }}
+        >
+          ★ {savedToast}
+        </div>
+      )}
     </div>
   );
 }
