@@ -139,122 +139,132 @@ export default function LocationPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#FFFDF9' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: '#FFFFFF' }}>
       {/* 헤더 */}
-      <header className="flex items-center px-6 py-4" style={{ borderBottom: '1px solid #F0EDEA' }}>
-        <button onClick={() => router.back()} className="text-sm mr-4 hover:opacity-60 transition-opacity" style={{ color: '#8C8C8C' }}>
-          ←
-        </button>
-        <span className="text-xs font-bold tracking-[0.2em] uppercase" style={{ color: '#8C8C8C' }}>
-          위치 설정
-        </span>
+      <header
+        className="flex items-center justify-between px-6 py-4"
+        style={{ borderBottom: '2px solid #1A1A1A' }}
+      >
+        <div className="flex items-center gap-3">
+          <div
+            className="w-8 h-8 flex items-center justify-center text-sm font-black"
+            style={{ background: '#FF9900', color: '#FFFFFF', borderRadius: 4 }}
+          >
+            A
+          </div>
+          <span className="text-sm font-black tracking-[0.2em] uppercase" style={{ color: '#1A1A1A' }}>
+            위치 설정
+          </span>
+        </div>
+        <div className="flex items-center gap-4">
+          <button onClick={() => router.back()} className="text-xs font-bold hover:opacity-60 transition-opacity" style={{ color: '#8C8C8C' }}>
+            ← BACK
+          </button>
+        </div>
       </header>
 
-      <main className="flex-1 flex flex-col items-center justify-center px-6 py-8">
+      <main className="flex-1 flex flex-col items-center justify-center px-6 py-10">
         <div className="w-full max-w-md">
-          {/* 섹션 타이틀 */}
+          {/* 타이틀 */}
           <div className="mb-8">
-            <div
-              className="inline-block text-xs font-bold tracking-widest uppercase px-2 py-0.5 mb-3"
-              style={{ background: '#FF4D2E', color: '#FFFDF9' }}
-            >
-              Step 1
-            </div>
-            <h1 className="text-3xl font-black tracking-tight" style={{ color: '#1F1F1F' }}>
-              어디서 먹을까요?
+            <h1 className="text-4xl font-black tracking-tight mb-2" style={{ color: '#1A1A1A' }}>
+              어디에{' '}
+              <span style={{ color: '#FF9900' }}>계신가요?</span>
             </h1>
+            <p className="text-sm" style={{ color: '#8C8C8C' }}>
+              모험을 시작하기 위해 원하는 위치를 골라주세요!
+            </p>
           </div>
 
           {/* 카테고리 필터 */}
-          <div className="mb-8">
+          <div className="mb-6 p-4" style={{ background: '#F5EDD0', border: '1px solid #E8DDB8', borderRadius: 4 }}>
             <div className="flex items-center justify-between mb-3">
-              <p className="text-xs font-bold tracking-widest uppercase" style={{ color: '#1F1F1F' }}>음식 종류</p>
-              <span className="text-xs" style={{ color: '#8C8C8C' }}>{categories.length}개 선택</span>
+              <p className="text-xs font-black tracking-widest uppercase" style={{ color: '#1A1A1A' }}>음식 종류</p>
+              <span
+                className="text-xs font-bold px-2 py-0.5"
+                style={{ background: '#1C8B40', color: '#FFFFFF', borderRadius: 2 }}
+              >
+                {categories.length}개 선택
+              </span>
             </div>
-            <div className="flex flex-wrap gap-x-3 gap-y-2">
+            <div className="flex flex-wrap gap-2">
               {CATEGORIES.map((cat) => {
                 const selected = categories.includes(cat);
                 return (
                   <button
                     key={cat}
                     onClick={() => toggleCategory(cat)}
-                    className="text-sm font-medium transition-all hover:opacity-80"
+                    className="px-3 py-1.5 text-xs font-bold transition-all hover:opacity-80"
                     style={selected
-                      ? { color: '#FF4D2E', fontWeight: 700 }
-                      : { color: '#8C8C8C', fontWeight: 400 }
+                      ? { background: '#FF9900', color: '#FFFFFF', borderRadius: 2 }
+                      : { background: '#FFFFFF', color: '#8C8C8C', border: '1px solid #E8DDB8', borderRadius: 2 }
                     }
                   >
-                    #{cat}
+                    {cat}
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* 현재 위치 버튼 */}
+          {/* 내 위치 찾기 버튼 */}
           <button
             onClick={useCurrentLocation}
             disabled={loading}
-            className="w-full py-4 text-sm font-bold tracking-widest uppercase transition-opacity hover:opacity-80 disabled:opacity-40 mb-4"
-            style={{ background: '#1F1F1F', color: '#FFFDF9' }}
+            className="w-full py-4 text-sm font-black tracking-widest uppercase transition-opacity hover:opacity-80 disabled:opacity-40 mb-4"
+            style={{ background: '#FF9900', color: '#FFFFFF', borderRadius: 2 }}
           >
-            {loading ? '위치 확인 중...' : '현재 위치 사용'}
+            {loading ? '위치 확인 중...' : '📍 내 위치 찾기'}
           </button>
 
-          {/* 구분선 */}
-          <div className="flex items-center my-6">
-            <div className="flex-1" style={{ height: 1, background: '#F0EDEA' }} />
-            <span className="px-4 text-xs tracking-widest" style={{ color: '#8C8C8C' }}>OR</span>
-            <div className="flex-1" style={{ height: 1, background: '#F0EDEA' }} />
-          </div>
-
-          {/* 지역 검색 */}
-          <div className="space-y-3">
+          {/* 검색 바 */}
+          <div className="flex gap-2 mb-4">
             <input
               type="text"
-              placeholder="예: 홍대입구역, 강남역"
+              placeholder="도시 이름 검색 지역"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && searchAddress()}
-              className="w-full px-4 py-3 text-sm outline-none transition-all"
+              className="flex-1 px-4 py-3 text-sm outline-none transition-all"
               style={{
-                background: '#F0EDEA',
-                color: '#1F1F1F',
-                border: '1.5px solid #F0EDEA',
+                border: '2px solid #E8DDB8',
+                borderRadius: 2,
+                background: '#FFFFFF',
+                color: '#1A1A1A',
               }}
-              onFocus={(e) => (e.currentTarget.style.borderColor = '#FF4D2E')}
-              onBlur={(e) => (e.currentTarget.style.borderColor = '#F0EDEA')}
+              onFocus={(e) => (e.currentTarget.style.borderColor = '#FF9900')}
+              onBlur={(e) => (e.currentTarget.style.borderColor = '#E8DDB8')}
             />
             <button
               onClick={searchAddress}
               disabled={loading}
-              className="w-full py-3 text-sm font-bold tracking-widest uppercase transition-opacity hover:opacity-80 disabled:opacity-40"
-              style={{ background: '#FF4D2E', color: '#FFFDF9' }}
+              className="px-5 py-3 text-sm font-black tracking-wider uppercase transition-opacity hover:opacity-80 disabled:opacity-40 whitespace-nowrap"
+              style={{ background: '#1A1A1A', color: '#FFFFFF', borderRadius: 2 }}
             >
-              {loading ? '검색 중...' : '지역 검색'}
+              {loading ? '...' : '검색'}
             </button>
           </div>
 
           {/* 에러 */}
           {error && (
             <div
-              className="mt-4 px-4 py-3 text-xs"
-              style={{ background: '#F0EDEA', color: '#FF4D2E', borderLeft: '3px solid #FF4D2E' }}
+              className="mb-4 px-4 py-3 text-xs"
+              style={{ background: '#FFF0D0', color: '#CC4400', border: '1px solid #FF9900', borderRadius: 2 }}
             >
               {error}
             </div>
           )}
 
-          {/* 검색 예시 */}
-          <div className="mt-6">
-            <p className="text-xs mb-2" style={{ color: '#8C8C8C' }}>빠른 검색</p>
+          {/* 빠른 검색 */}
+          <div>
+            <p className="text-xs font-bold mb-2" style={{ color: '#8C8C8C' }}>빠른 검색</p>
             <div className="flex flex-wrap gap-2">
               {['홍대입구역', '강남역', '부산 서면', '대구 동성로'].map((example) => (
                 <button
                   key={example}
                   onClick={() => setSearchQuery(example)}
-                  className="px-3 py-1 text-xs transition-all hover:opacity-60"
-                  style={{ border: '1px solid #F0EDEA', color: '#8C8C8C', background: '#FFFDF9' }}
+                  className="px-3 py-1 text-xs transition-all hover:opacity-70"
+                  style={{ border: '1px solid #E8DDB8', color: '#8C8C8C', background: '#FFFFFF', borderRadius: 2 }}
                 >
                   {example}
                 </button>

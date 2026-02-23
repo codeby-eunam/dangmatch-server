@@ -12,65 +12,120 @@ function HomePageInner() {
   const errorMsg = searchParams.get('error');
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#FFFDF9' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: '#F5EDD0' }}>
       {/* 헤더 */}
-      <header className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #F0EDEA' }}>
-        <span className="text-xs font-bold tracking-[0.2em] uppercase" style={{ color: '#8C8C8C' }}>
-          Dangmatch
-        </span>
+      <header className="flex items-center justify-between px-6 py-4">
+        <div className="flex items-center gap-2">
+          <div
+            className="w-8 h-8 flex items-center justify-center text-base font-black"
+            style={{ background: '#FF9900', color: '#FFFFFF', borderRadius: 4 }}
+          >
+            🍴
+          </div>
+          <span className="text-sm font-black tracking-[0.15em]" style={{ color: '#1A1A1A' }}>
+            당맷치
+          </span>
+        </div>
         <KakaoLoginButton />
       </header>
 
       {/* 메인 */}
-      <main className="flex-1 flex flex-col items-center justify-center px-6 text-center">
-        {/* 레드 태그 */}
+      <main className="flex-1 flex flex-col items-center justify-center px-6 text-center relative">
+        {/* 배경 원형 장식 */}
         <div
-          className="inline-block text-xs font-bold tracking-widest uppercase px-3 py-1 mb-8"
-          style={{ background: '#FF4D2E', color: '#FFFDF9' }}
-        >
-          Editor&apos;s Pick
-        </div>
+          className="absolute"
+          style={{
+            width: 320,
+            height: 320,
+            border: '2px dashed rgba(255,153,0,0.25)',
+            borderRadius: '50%',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -60%)',
+          }}
+        />
 
+        {/* 서브 태그 */}
+        <p className="text-xs font-bold tracking-widest mb-4" style={{ color: '#FF9900' }}>
+          최고의 맛 결장전
+        </p>
+
+        {/* 메인 헤딩 */}
         <h1
-          className="text-6xl font-black leading-none mb-4 tracking-tight"
-          style={{ color: '#1F1F1F' }}
+          className="font-black leading-none mb-6 tracking-tight"
+          style={{
+            fontSize: 'clamp(4rem, 15vw, 8rem)',
+            color: '#FF9900',
+            textShadow: '4px 4px 0 rgba(0,0,0,0.15)',
+            fontStyle: 'italic',
+          }}
         >
-          오늘<br />뭐 먹지?
+          당맷치
         </h1>
 
-        <p className="text-base mb-10" style={{ color: '#8C8C8C' }}>
-          토너먼트로 오늘의 맛집을 골라드립니다
+        <p className="text-sm mb-8 max-w-xs leading-relaxed" style={{ color: '#5C4A1A' }}>
+          가장 끌리는 맛을 골라보세요
         </p>
 
         {errorMsg && (
           <div
-            className="mb-6 px-4 py-3 text-xs max-w-xs"
-            style={{ background: '#F0EDEA', color: '#FF4D2E', border: '1px solid #FF4D2E' }}
+            className="mb-5 px-4 py-3 text-xs max-w-xs w-full"
+            style={{ background: '#FFF0D0', color: '#CC4400', border: '1px solid #FF9900', borderRadius: 2 }}
           >
             {decodeURIComponent(errorMsg)}
           </div>
         )}
 
         {user && (
-          <p className="text-sm mb-6 font-medium" style={{ color: '#FF4D2E' }}>
-            {user.nickname}님, 반가워요
+          <p className="text-sm mb-4 font-bold" style={{ color: '#FF9900' }}>
+            {user.nickname}님, 반가워요 👋
           </p>
         )}
 
+        {/* 시작 버튼 */}
         <button
           onClick={() => router.push('/location')}
-          className="px-12 py-4 text-base font-bold tracking-widest uppercase transition-opacity hover:opacity-80"
-          style={{ background: '#1F1F1F', color: '#FFFDF9' }}
+          className="w-full max-w-xs py-4 text-base font-black tracking-widest uppercase transition-all hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] mb-4"
+          style={{
+            background: '#FF9900',
+            color: '#FFFFFF',
+            borderRadius: 4,
+            boxShadow: '4px 4px 0 rgba(0,0,0,0.15)',
+          }}
         >
           시작하기
         </button>
-
-        <div className="mt-16 flex items-center gap-4">
-          <div style={{ width: 40, height: 1, background: '#F0EDEA' }} />
-          <span className="text-xs tracking-widest" style={{ color: '#8C8C8C' }}>FOOD TOURNAMENT</span>
-          <div style={{ width: 40, height: 1, background: '#F0EDEA' }} />
-        </div>
       </main>
+
+      {/* 하단 이미지 띠 */}
+      <div className="flex gap-1 overflow-hidden px-0 pb-0" style={{ height: 100 }}>
+        {['🥩', '🍕', '🦞', '🍜'].map((emoji, i) => (
+          <div
+            key={i}
+            className="flex-1 flex items-center justify-center text-5xl"
+            style={{
+              background: '#1A1A1A',
+              filter: 'grayscale(1)',
+              opacity: 0.8,
+            }}
+          >
+            {emoji}
+          </div>
+        ))}
+      </div>
+
+      {/* 푸터 */}
+      <footer
+        className="flex items-center justify-between px-6 py-3 text-xs"
+        style={{ borderTop: '1px solid #E8DDB8', color: '#8C8C8C' }}
+      >
+        <div className="flex gap-4">
+          <span className="cursor-pointer hover:text-orange-500 transition-colors">랭킹</span>
+          <span className="cursor-pointer hover:text-orange-500 transition-colors">맛집의 전당</span>
+          <span className="cursor-pointer hover:text-orange-500 transition-colors">이용 방법</span>
+        </div>
+        <span style={{ color: '#C0A060' }}>© 당맛치</span>
+      </footer>
     </div>
   );
 }
