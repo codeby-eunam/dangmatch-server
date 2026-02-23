@@ -367,7 +367,7 @@ export default function SwipePage() {
               >
                 ✕
               </button>
-              <span className="text-xs" style={{ color: '#8C8C8C' }}>삭제 (빨강)</span>
+              <span className="text-xs" style={{ color: '#8C8C8C' }}>삭제</span>
             </div>
             <div className="flex flex-col items-center gap-1">
               <button
@@ -379,7 +379,7 @@ export default function SwipePage() {
               >
                 ✓
               </button>
-              <span className="text-xs font-bold" style={{ color: '#FF9900' }}>선택 (초록)</span>
+              <span className="text-xs font-bold" style={{ color: '#FF9900' }}>선택</span>
             </div>
             <div className="flex flex-col items-center gap-1">
               <button
