@@ -108,7 +108,23 @@ export default function RestaurantsPage() {
                 border: isSelected ? '1.5px solid #1F1F1F' : '1.5px solid transparent',
               }}
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {/* 이미지 or 이모지 */}
+                <div
+                  className="w-14 h-14 flex-shrink-0 overflow-hidden flex items-center justify-center"
+                  style={{ background: isSelected ? '#333' : '#E0DDD8' }}
+                >
+                  {restaurant.images?.[0] ? (
+                    <img
+                      src={restaurant.images[0]}
+                      alt={restaurant.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-2xl">🍽️</span>
+                  )}
+                </div>
+                {/* 텍스트 */}
                 <div className="flex-1 min-w-0">
                   <h3
                     className="font-bold text-base truncate"
@@ -124,7 +140,7 @@ export default function RestaurantsPage() {
                   </p>
                 </div>
                 {isSelected && (
-                  <span className="ml-3 text-sm font-bold flex-shrink-0" style={{ color: '#FF4D2E' }}>✓</span>
+                  <span className="text-sm font-bold flex-shrink-0" style={{ color: '#FF4D2E' }}>✓</span>
                 )}
               </div>
             </button>

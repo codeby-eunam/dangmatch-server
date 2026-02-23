@@ -81,20 +81,15 @@ export default function LocationPage() {
       const documents = await fetchByCategories(location.lat, location.lng, radius, categories);
 
       if (documents.length > 0) {
-        setRestaurants(
-          documents.map((doc: any) => ({
-            id: doc.id,
-            name: doc.place_name,
-            category: doc.category_name,
-            address: doc.road_address_name || doc.address_name,
-            phone: doc.phone || '',
-            lat: parseFloat(doc.y),
-            lng: parseFloat(doc.x),
-            kakaoUrl: doc.place_url || '',
-            distance: doc.distance,
-            isBye: false,
-          }))
-        );
+        // Firebase upsert + Naver 이미지 fetch
+        const syncRes = await fetch('/api/restaurants/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ documents }),
+        });
+        const syncData = await syncRes.json();
+
+        setRestaurants(syncData.restaurants);
         router.push('/swipe');
       } else {
         setError('해당 지역에 식당이 없습니다. 다른 지역을 검색해보세요.');
