@@ -3,7 +3,7 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { getAdminDb } from '@/lib/firebase/admin';
 
 export async function POST(req: NextRequest) {
-  const { restaurantId, name, address, secret } = await req.json();
+  const { restaurantId, name, address, secret, schoolDomain } = await req.json();
 
   const isProd = process.env.NODE_ENV === 'production';
   if (isProd && secret !== process.env.ADMIN_SECRET) {
@@ -53,6 +53,17 @@ export async function POST(req: NextRequest) {
       images: FieldValue.arrayUnion(imageUrl),
       updatedAt: FieldValue.serverTimestamp(),
     });
+
+    // 3. schoolDomain이 있으면 school_feeds 중첩 필드도 업데이트
+    if (schoolDomain) {
+      await db
+        .collection('school_feeds').doc(schoolDomain)
+        .collection('restaurants').doc(restaurantId)
+        .update({
+          'restaurant.images': FieldValue.arrayUnion(imageUrl),
+          lastUpdated: FieldValue.serverTimestamp(),
+        });
+    }
 
     return Response.json({ imageUrl });
   } catch (e) {

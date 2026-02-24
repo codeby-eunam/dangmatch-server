@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
   const lat = searchParams.get('lat');
   const lng = searchParams.get('lng');
   const radius = searchParams.get('radius') || '2000';
+  const page = searchParams.get('page') || '1';
 
   if (!q || !lat || !lng) {
     return Response.json({ error: '필수 파라미터 누락 (q, lat, lng)' }, { status: 400 });
@@ -23,6 +24,7 @@ export async function GET(request: NextRequest) {
     url.searchParams.set('y', lat);
     url.searchParams.set('radius', radius);
     url.searchParams.set('size', '15');
+    url.searchParams.set('page', page);
 
     const res = await fetch(url.toString(), {
       headers: { Authorization: `KakaoAK ${apiKey}` },

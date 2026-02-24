@@ -3,7 +3,7 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { getAdminDb } from '@/lib/firebase/admin';
 
 export async function POST(req: NextRequest) {
-  const { restaurantId, imageUrl, secret } = await req.json();
+  const { restaurantId, imageUrl, secret, schoolDomain } = await req.json();
 
   const isProd = process.env.NODE_ENV === 'production';
   if (isProd && secret !== process.env.ADMIN_SECRET) {
@@ -26,6 +26,16 @@ export async function POST(req: NextRequest) {
     images: FieldValue.arrayUnion(imageUrl),
     updatedAt: FieldValue.serverTimestamp(),
   });
+
+  if (schoolDomain) {
+    await db
+      .collection('school_feeds').doc(schoolDomain)
+      .collection('restaurants').doc(restaurantId)
+      .update({
+        'restaurant.images': FieldValue.arrayUnion(imageUrl),
+        lastUpdated: FieldValue.serverTimestamp(),
+      });
+  }
 
   return Response.json({ success: true, imageUrl });
 }

@@ -55,10 +55,10 @@ service cloud.firestore {
     }
 
     // ── 학교 피드 ─────────────────────────────────────────────────────────────
-    // 맛집 랭킹: 읽기 누구나, 쓰기는 로그인 유저
+    // 맛집 랭킹: 읽기·쓰기 누구나 (비로그인 유저도 식당 추가/추천 가능)
     match /school_feeds/{schoolDomain}/restaurants/{restaurantId} {
       allow read: if true;
-      allow create, update: if request.auth != null;
+      allow create, update: if true;
     }
 
     // 공유 리스트: 읽기 누구나, 작성자만 수정/삭제
