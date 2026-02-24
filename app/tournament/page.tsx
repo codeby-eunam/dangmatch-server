@@ -102,7 +102,7 @@ export default function TournamentPage() {
     <div className="h-screen relative overflow-hidden" style={{ fontFamily: 'Arial, sans-serif' }}>
 
       {/* ── 스플릿 화면 ── */}
-      <div className="h-full flex">
+      <div className="h-full flex flex-col md:flex-row">
 
         {/* 왼쪽 — 레드 */}
         <button
@@ -237,9 +237,32 @@ export default function TournamentPage() {
         </button>
       </div>
 
-      {/* ── VS 중앙 배지 ── */}
+      {/* ── VS 배지 (모바일: 수평) ── */}
       <div
-        className="absolute inset-y-0 z-20 flex flex-col items-center justify-center pointer-events-none"
+        className="md:hidden absolute inset-x-0 z-20 flex flex-row items-center justify-center pointer-events-none"
+        style={{ top: '50%', transform: 'translateY(-50%)', height: 64 }}
+      >
+        <div className="flex-1" style={{ height: 2, background: 'rgba(255,255,255,0.2)' }} />
+        <div
+          className="flex items-center justify-center font-black text-sm flex-shrink-0"
+          style={{
+            width: 52,
+            height: 52,
+            background: '#1A1A1A',
+            color: '#FF9900',
+            borderRadius: '50%',
+            border: '3px solid #FF9900',
+            boxShadow: '0 0 24px rgba(255,153,0,0.5), 0 4px 12px rgba(0,0,0,0.5)',
+          }}
+        >
+          VS
+        </div>
+        <div className="flex-1" style={{ height: 2, background: 'rgba(255,255,255,0.2)' }} />
+      </div>
+
+      {/* ── VS 배지 (웹: 수직) ── */}
+      <div
+        className="hidden md:flex absolute inset-y-0 z-20 flex-col items-center justify-center pointer-events-none"
         style={{ left: '50%', transform: 'translateX(-50%)', width: 64 }}
       >
         <div className="flex-1" style={{ width: 2, background: 'rgba(255,255,255,0.2)' }} />
