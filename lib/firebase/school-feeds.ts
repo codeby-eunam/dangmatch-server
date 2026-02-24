@@ -197,6 +197,41 @@ export async function removeRestaurantFromSchoolList(
   }
 }
 
+/** 학생이 직접 식당 제보 — nominateCount +1, nominatedBy에 uid 추가 */
+export async function nominateRestaurantToSchoolFeed(
+  schoolDomain: string,
+  uid: string,
+  restaurant: Restaurant
+): Promise<void> {
+  const ref = doc(db, 'school_feeds', schoolDomain, 'restaurants', restaurant.id);
+  try {
+    await runTransaction(db, async (tx) => {
+      const snap = await tx.get(ref);
+      if (snap.exists()) {
+        tx.update(ref, {
+          nominateCount: increment(1),
+          nominatedBy: arrayUnion(uid),
+          lastUpdated: serverTimestamp(),
+          restaurant,
+        });
+      } else {
+        tx.set(ref, {
+          restaurant,
+          winCount: 0,
+          likeCount: 0,
+          nominateCount: 1,
+          nominatedBy: [uid],
+          contributedBy: [],
+          lastUpdated: serverTimestamp(),
+        });
+      }
+    });
+  } catch (err) {
+    console.error('[school-feeds] nominateRestaurantToSchoolFeed 실패', err);
+    throw err;
+  }
+}
+
 /** 개인 리스트를 학교 피드에 공유 (전체 복사) */
 export async function saveSchoolList(
   schoolDomain: string,

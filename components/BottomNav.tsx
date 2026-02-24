@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
 // 탭바를 숨길 경로 (풀스크린 게임 화면)
-const HIDDEN_PATHS = ['/swipe', '/tournament', '/result'];
+const HIDDEN_PATHS = ['/swipe', '/tournament', '/result', '/yeungnam'];
 
 const tabs = [
   {
