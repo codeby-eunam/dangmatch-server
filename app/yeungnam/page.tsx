@@ -260,7 +260,7 @@ export default function YeungnamPage() {
         style={{ borderBottom: '2px solid #1A1A1A' }}
       >
         <div className="flex items-start justify-between">
-          <div>
+          <div className="flex-1 min-w-0 mr-3">
             <p className="text-xs font-black tracking-widest uppercase" style={{ color: '#FF9900' }}>
               YNU FOOD
             </p>
@@ -430,7 +430,7 @@ export default function YeungnamPage() {
       {/* 토스트 */}
       {toast && (
         <div
-          className="fixed bottom-24 left-1/2 -translate-x-1/2 px-5 py-3 text-xs font-black z-50 whitespace-nowrap"
+          className="fixed bottom-32 left-1/2 -translate-x-1/2 px-5 py-3 text-xs font-black z-50 whitespace-nowrap"
           style={{ background: '#1A1A1A', color: '#FF9900', borderRadius: 2 }}
         >
           ★ {toast}
