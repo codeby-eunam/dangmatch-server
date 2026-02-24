@@ -271,35 +271,19 @@ export default function YeungnamPage() {
               🎓 영남대 학생들이 직접 고른 맛집 랭킹
             </p>
           </div>
-          {user ? (
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-black"
-              style={{
-                background: '#FF9900',
-                border: '2px solid #1A1A1A',
-                borderRadius: 4,
-                color: '#1A1A1A',
-                flexShrink: 0,
-              }}
-            >
-              + 식당 추가
-            </button>
-          ) : (
-            <button
-              onClick={() => router.push('/')}
-              className="flex items-center gap-1 px-4 py-2.5 text-xs font-black"
-              style={{
-                background: 'transparent',
-                border: '2px solid #1A1A1A',
-                borderRadius: 4,
-                color: '#1A1A1A',
-                flexShrink: 0,
-              }}
-            >
-              로그인
-            </button>
-          )}
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-black"
+            style={{
+              background: '#FF9900',
+              border: '2px solid #1A1A1A',
+              borderRadius: 4,
+              color: '#1A1A1A',
+              flexShrink: 0,
+            }}
+          >
+            + 식당 추가
+          </button>
         </div>
       </header>
 
@@ -419,9 +403,9 @@ export default function YeungnamPage() {
       </div>
 
       {/* 식당 추가 모달 */}
-      {showAddModal && user && (
+      {showAddModal && (
         <AddRestaurantModal
-          uid={user.uid}
+          uid={user?.uid ?? 'anonymous'}
           onClose={() => setShowAddModal(false)}
           onAdded={handleAdded}
         />
@@ -430,7 +414,7 @@ export default function YeungnamPage() {
       {/* 토스트 */}
       {toast && (
         <div
-          className="fixed bottom-32 left-1/2 -translate-x-1/2 px-5 py-3 text-xs font-black z-50 whitespace-nowrap"
+          className="fixed bottom-24 left-1/2 -translate-x-1/2 px-5 py-3 text-xs font-black z-50 whitespace-nowrap"
           style={{ background: '#1A1A1A', color: '#FF9900', borderRadius: 2 }}
         >
           ★ {toast}
