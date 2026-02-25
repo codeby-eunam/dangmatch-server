@@ -12,120 +12,86 @@ function HomePageInner() {
   const errorMsg = searchParams.get('error');
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#F5EDD0' }}>
-      {/* 헤더 */}
-      <header className="flex items-center justify-between px-6 py-4">
-        <div className="flex items-center gap-2">
-          <div
-            className="w-8 h-8 flex items-center justify-center text-base font-black"
-            style={{ background: '#FF9900', color: '#FFFFFF', borderRadius: 4 }}
-          >
-            🍴
-          </div>
-          <span className="text-sm font-black tracking-[0.15em]" style={{ color: '#1A1A1A' }}>
-            당맷치
+    <div className="min-h-screen flex flex-col pb-[60px]" style={{ background: '#F8F9FA' }}>
+      {/* 상단 위치 바 + 로그인 */}
+      <div className="px-4 pt-4 pb-2 flex items-center gap-2">
+        <div
+          className="flex-1 flex items-center gap-3 px-4 py-3 rounded-2xl"
+          style={{ background: '#FFFFFF', boxShadow: '0 2px 12px rgba(0,0,0,0.07)' }}
+        >
+          <svg width="18" height="20" viewBox="0 0 18 20" fill="none">
+            <path
+              d="M9 0C5.13 0 2 3.13 2 7c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"
+              fill="#FF7F50"
+            />
+            <circle cx="9" cy="7" r="2.5" fill="#FFFFFF" />
+          </svg>
+          <span className="flex-1 text-sm font-medium" style={{ color: '#1a2a4a' }}>
+            {user?.school?.name ? `${user.school.name} 근처` : '위치를 설정하세요'}
           </span>
+          <button
+            onClick={() => router.push('/location')}
+            className="transition-opacity hover:opacity-70"
+            aria-label="검색"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <circle cx="11" cy="11" r="7" stroke="#8C8C8C" strokeWidth="2" />
+              <path d="M20 20l-3.5-3.5" stroke="#8C8C8C" strokeWidth="2.5" strokeLinecap="round" />
+            </svg>
+          </button>
         </div>
         <KakaoLoginButton />
-      </header>
+      </div>
 
-      {/* 메인 */}
-      <main className="flex-1 flex flex-col items-center justify-center px-6 text-center relative">
-        {/* 배경 원형 장식 */}
+      {/* 메인 컨텐츠 */}
+      <main className="flex-1 flex flex-col items-center justify-center px-6 text-center">
+        {/* 음식 일러스트 카드 */}
         <div
-          className="absolute"
+          className="mb-8 flex items-center justify-center"
           style={{
-            width: 320,
-            height: 320,
-            border: '2px dashed rgba(255,153,0,0.25)',
-            borderRadius: '50%',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -60%)',
-          }}
-        />
-
-        {/* 서브 태그 */}
-        <p className="text-xs font-bold tracking-widest mb-4" style={{ color: '#FF9900' }}>
-          최고의 맛 결장전
-        </p>
-
-        {/* 메인 헤딩 */}
-        <h1
-          className="font-black leading-none mb-6 tracking-tight"
-          style={{
-            fontSize: 'clamp(4rem, 15vw, 8rem)',
-            color: '#FF9900',
-            textShadow: '4px 4px 0 rgba(0,0,0,0.15)',
-            fontStyle: 'italic',
+            width: 260,
+            height: 260,
+            background: '#F5EDD0',
+            borderRadius: 28,
+            boxShadow: '0 12px 40px rgba(0,0,0,0.10)',
           }}
         >
-          당맷치
-        </h1>
-
-        <p className="text-sm mb-8 max-w-xs leading-relaxed" style={{ color: '#5C4A1A' }}>
-          가장 끌리는 맛을 골라보세요
-        </p>
+          <span style={{ fontSize: 110 }}>🥗</span>
+        </div>
 
         {errorMsg && (
           <div
-            className="mb-5 px-4 py-3 text-xs max-w-xs w-full"
-            style={{ background: '#FFF0D0', color: '#CC4400', border: '1px solid #FF9900', borderRadius: 2 }}
+            className="mb-5 px-4 py-3 text-xs max-w-xs w-full rounded-2xl"
+            style={{ background: '#FFF0ED', color: '#CC4400', border: '1px solid #FF7F50' }}
           >
             {decodeURIComponent(errorMsg)}
           </div>
         )}
 
         {user && (
-          <p className="text-sm mb-4 font-bold" style={{ color: '#FF9900' }}>
+          <p className="text-sm mb-4 font-semibold" style={{ color: '#2EB8B8' }}>
             {user.nickname}님, 반가워요 👋
           </p>
         )}
 
-        {/* 시작 버튼 */}
+        {/* 시작하기 버튼 */}
         <button
           onClick={() => router.push('/location')}
-          className="w-full max-w-xs py-4 text-base font-black tracking-widest uppercase transition-all hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] mb-4"
+          className="w-full max-w-xs py-4 text-base font-bold transition-all hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] mb-3"
           style={{
-            background: '#FF9900',
+            background: '#FF7F50',
             color: '#FFFFFF',
-            borderRadius: 4,
-            boxShadow: '4px 4px 0 rgba(0,0,0,0.15)',
+            borderRadius: 50,
+            boxShadow: '0 6px 20px rgba(255,127,80,0.40)',
           }}
         >
           시작하기
         </button>
+
+        <p className="text-sm font-semibold" style={{ color: '#FF7F50' }}>
+          고민하지 말고, 맛있게!
+        </p>
       </main>
-
-      {/* 하단 이미지 띠 */}
-      <div className="flex gap-1 overflow-hidden px-0 pb-0" style={{ height: 100 }}>
-        {['🥩', '🍕', '🦞', '🍜'].map((emoji, i) => (
-          <div
-            key={i}
-            className="flex-1 flex items-center justify-center text-5xl"
-            style={{
-              background: '#1A1A1A',
-              filter: 'grayscale(1)',
-              opacity: 0.8,
-            }}
-          >
-            {emoji}
-          </div>
-        ))}
-      </div>
-
-      {/* 푸터 */}
-      <footer
-        className="flex items-center justify-between px-6 py-3 text-xs"
-        style={{ borderTop: '1px solid #E8DDB8', color: '#8C8C8C' }}
-      >
-        <div className="flex gap-4">
-          <span className="cursor-pointer hover:text-orange-500 transition-colors">랭킹</span>
-          <span className="cursor-pointer hover:text-orange-500 transition-colors">맛집의 전당</span>
-          <span className="cursor-pointer hover:text-orange-500 transition-colors">이용 방법</span>
-        </div>
-        <span style={{ color: '#C0A060' }}>© 당맛치</span>
-      </footer>
     </div>
   );
 }

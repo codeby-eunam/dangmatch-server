@@ -32,6 +32,11 @@ function getCategoryEmoji(category: string) {
   return '🍽️';
 }
 
+interface MatchSnapshot {
+  matchIndex: number;
+  winners: Restaurant[];
+}
+
 export default function TournamentPage() {
   const router = useRouter();
   const { restaurants: allRestaurants, swipedRestaurants, setFinalWinner } = useTournamentStore();
@@ -40,6 +45,8 @@ export default function TournamentPage() {
   const [currentRound, setCurrentRound] = useState<Restaurant[]>([]);
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
   const [nextRoundWinners, setNextRoundWinners] = useState<Restaurant[]>([]);
+  const [selectedSide, setSelectedSide] = useState<'left' | 'right' | null>(null);
+  const [history, setHistory] = useState<MatchSnapshot[]>([]);
 
   useEffect(() => {
     if (restaurants.length === 0) {
@@ -47,13 +54,10 @@ export default function TournamentPage() {
       return;
     }
     const shuffled = [...restaurants].sort(() => Math.random() - 0.5);
-    if (shuffled.length % 2 !== 0) {
-      shuffled.push(BYE_CARD);
-    }
+    if (shuffled.length % 2 !== 0) shuffled.push(BYE_CARD);
     setCurrentRound(shuffled);
     setCurrentMatchIndex(0);
     setNextRoundWinners([]);
-
     restaurants.forEach((r) => {
       if (!r.isBye) recordTournamentEntry(r.id);
     });
@@ -73,170 +77,238 @@ export default function TournamentPage() {
   const r1 = currentRound[currentMatchIndex * 2];
   const r2 = currentRound[currentMatchIndex * 2 + 1];
 
-  const handleSelectWinner = useCallback((winner: Restaurant) => {
-    const newWinners = [...nextRoundWinners, winner];
-    const newMatchIndex = currentMatchIndex + 1;
+  const handleSelectWinner = useCallback(
+    (winner: Restaurant) => {
+      setHistory((prev) => [...prev, { matchIndex: currentMatchIndex, winners: nextRoundWinners }]);
+      const newWinners = [...nextRoundWinners, winner];
+      const newMatchIndex = currentMatchIndex + 1;
 
-    if (newMatchIndex >= totalMatches) {
-      if (newWinners.length === 1) {
-        setFinalWinner(newWinners[0]);
-        router.push('/result');
-      } else {
-        const nextRound = [...newWinners].sort(() => Math.random() - 0.5);
-        if (nextRound.length % 2 !== 0) {
-          nextRound.push(BYE_CARD);
+      if (newMatchIndex >= totalMatches) {
+        if (newWinners.length === 1) {
+          setFinalWinner(newWinners[0]);
+          router.push('/result');
+        } else {
+          const nextRound = [...newWinners].sort(() => Math.random() - 0.5);
+          if (nextRound.length % 2 !== 0) nextRound.push(BYE_CARD);
+          setCurrentRound(nextRound);
+          setCurrentMatchIndex(0);
+          setNextRoundWinners([]);
+          setHistory([]);
         }
-        setCurrentRound(nextRound);
-        setCurrentMatchIndex(0);
-        setNextRoundWinners([]);
+      } else {
+        setCurrentMatchIndex(newMatchIndex);
+        setNextRoundWinners(newWinners);
       }
+      setSelectedSide(null);
+    },
+    [currentMatchIndex, nextRoundWinners, totalMatches, router, setFinalWinner]
+  );
+
+  const handleConfirm = () => {
+    if (!selectedSide) return;
+    const winner = selectedSide === 'left' ? r1 : r2;
+    if (winner && !winner.isBye) handleSelectWinner(winner);
+  };
+
+  const handleGoBack = () => {
+    if (history.length > 0) {
+      const prev = history[history.length - 1];
+      setHistory((h) => h.slice(0, -1));
+      setCurrentMatchIndex(prev.matchIndex);
+      setNextRoundWinners(prev.winners);
+      setSelectedSide(null);
     } else {
-      setCurrentMatchIndex(newMatchIndex);
-      setNextRoundWinners(newWinners);
+      router.back();
     }
-  }, [currentMatchIndex, nextRoundWinners, totalMatches, router, setFinalWinner]);
+  };
 
   if (!r1 || !r2) return null;
 
-  return (
-    <div className="h-screen relative overflow-hidden" style={{ fontFamily: 'Arial, sans-serif' }}>
+  const matchNum = currentMatchIndex + 1;
 
+  return (
+    <div className="h-screen flex flex-col overflow-hidden">
+      {/* 헤더 */}
+      <header
+        className="flex items-center justify-between px-4 py-3 flex-shrink-0"
+        style={{ background: '#1E5C5C' }}
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-xl">🍴</span>
+          <span className="font-bold text-base" style={{ color: '#FFD700' }}>Dangmatch</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <div
+            className="px-4 py-1.5 rounded-full text-sm font-semibold"
+            style={{ background: 'rgba(255,255,255,0.15)', color: '#FFFFFF' }}
+          >
+            Round {matchNum}/{totalMatches}
+          </div>
+          <button
+            onClick={() => router.push('/location')}
+            className="w-8 h-8 flex items-center justify-center rounded-full transition-opacity hover:opacity-70"
+            style={{ background: 'rgba(255,255,255,0.15)', color: '#FFFFFF' }}
+          >
+            ✕
+          </button>
+        </div>
+      </header>
+
+<<<<<<< Updated upstream
       {/* ── 스플릿 화면 ── */}
       <div className="h-full flex">
+=======
+      {/* 질문 텍스트 */}
+      <div
+        className="py-4 text-center flex-shrink-0"
+        style={{ background: '#1E5C5C' }}
+      >
+        <p className="text-white font-bold text-base px-4">
+          세상에서 제일 힘든 선택이지? 딱 하나만 골라.
+        </p>
+      </div>
+>>>>>>> Stashed changes
 
-        {/* 왼쪽 — 레드 */}
+      {/* 스플릿 뷰 */}
+      <div className="flex flex-1 relative overflow-hidden">
+        {/* 왼쪽 (Choice A) */}
         <button
-          onClick={() => !r1.isBye && handleSelectWinner(r1)}
+          onClick={() => !r1.isBye && setSelectedSide('left')}
           disabled={r1.isBye}
-          className="flex-1 relative flex flex-col items-center justify-center overflow-hidden group"
-          style={{ background: r1.isBye ? '#555' : '#C8232C' }}
+          className="flex-1 relative overflow-hidden transition-all"
+          style={{
+            outline: selectedSide === 'left' ? '4px solid #FFD700' : 'none',
+            outlineOffset: '-4px',
+          }}
         >
-          {r1.images?.[0] && (
+          {r1.images?.[0] ? (
             <div
               className="absolute inset-0"
               style={{
                 backgroundImage: `url(${r1.images[0]})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                opacity: 0.35,
               }}
             />
-          )}
-          {!r1.images?.[0] && (
+          ) : (
             <div
-              className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
-              style={{ opacity: 0.07 }}
+              className="absolute inset-0 flex items-center justify-center"
+              style={{ background: '#2A3A3A' }}
             >
-              <span style={{ fontSize: '16rem', lineHeight: 1 }}>{getCategoryEmoji(r1.category)}</span>
+              <span style={{ fontSize: '7rem', opacity: 0.25 }}>{getCategoryEmoji(r1.category)}</span>
             </div>
           )}
+          {/* 어두운 그라디언트 오버레이 */}
           <div
             className="absolute inset-0"
-            style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.45) 100%)' }}
+            style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.65) 100%)' }}
           />
-          <div
-            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-            style={{ background: 'rgba(255,255,255,0.07)' }}
-          />
-
-          <div className="relative z-10 text-center px-6 py-20">
-            {r1.isBye ? (
-              <>
-                <h2 className="text-5xl font-black text-white mb-3">부전승</h2>
-                <p className="text-sm text-white opacity-70">자동 진출</p>
-              </>
-            ) : (
-              <>
-                <p
-                  className="text-xs font-black tracking-widest uppercase mb-4"
-                  style={{ color: '#FFD580', opacity: 0.9 }}
-                >
-                  {r1.category.split('>').pop()?.trim()}
-                </p>
-                <h2
-                  className="font-black text-white mb-8 leading-tight"
-                  style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', textShadow: '2px 2px 8px rgba(0,0,0,0.5)' }}
-                >
-                  {r1.name}
-                </h2>
-                <div
-                  className="inline-flex items-center gap-2 px-7 py-3 font-black text-sm text-white"
-                  style={{ border: '2px solid rgba(255,255,255,0.8)', borderRadius: 2 }}
-                >
-                  투표하기 👆
-                </div>
-              </>
-            )}
+          {/* 선택 시 하이라이트 */}
+          {selectedSide === 'left' && (
+            <div className="absolute inset-0" style={{ background: 'rgba(255,215,0,0.12)' }} />
+          )}
+          {/* 하단 정보 */}
+          <div className="absolute bottom-0 left-0 right-0 p-4">
+            <div className="mb-2">
+              <span
+                className="text-xs font-bold px-3 py-1 rounded-full"
+                style={{ background: '#FFD700', color: '#1a2a4a' }}
+              >
+                Choice A
+              </span>
+            </div>
+            <h2 className="text-2xl font-black text-white leading-tight">
+              {r1.isBye ? '부전승' : r1.name}
+            </h2>
           </div>
         </button>
 
-        {/* 오른쪽 — 그린 */}
-        <button
-          onClick={() => !r2.isBye && handleSelectWinner(r2)}
-          disabled={r2.isBye}
-          className="flex-1 relative flex flex-col items-center justify-center overflow-hidden group"
-          style={{ background: r2.isBye ? '#555' : '#1C8B40' }}
+        {/* 중앙 분리선 */}
+        <div
+          className="absolute inset-y-0 z-10 pointer-events-none"
+          style={{
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: 2,
+            background: 'rgba(255,255,255,0.25)',
+          }}
+        />
+
+        {/* VS 배지 */}
+        <div
+          className="absolute z-20 flex flex-col items-center pointer-events-none"
+          style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}
         >
-          {r2.images?.[0] && (
+          <div
+            className="w-14 h-14 rounded-full flex flex-col items-center justify-center"
+            style={{
+              background: '#FF7F50',
+              border: '3px solid #FFFFFF',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+            }}
+          >
+            <span style={{ fontSize: 22 }}>😋</span>
+            <span className="text-[8px] font-black text-white leading-none">DANGI</span>
+          </div>
+          <div
+            className="mt-1 px-2.5 py-0.5 rounded-full text-xs font-black"
+            style={{ background: '#FFD700', color: '#1a2a4a' }}
+          >
+            VS
+          </div>
+        </div>
+
+        {/* 오른쪽 (Choice B) */}
+        <button
+          onClick={() => !r2.isBye && setSelectedSide('right')}
+          disabled={r2.isBye}
+          className="flex-1 relative overflow-hidden transition-all"
+          style={{
+            outline: selectedSide === 'right' ? '4px solid #FFD700' : 'none',
+            outlineOffset: '-4px',
+          }}
+        >
+          {r2.images?.[0] ? (
             <div
               className="absolute inset-0"
               style={{
                 backgroundImage: `url(${r2.images[0]})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                opacity: 0.35,
               }}
             />
-          )}
-          {!r2.images?.[0] && (
+          ) : (
             <div
-              className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
-              style={{ opacity: 0.07 }}
+              className="absolute inset-0 flex items-center justify-center"
+              style={{ background: '#1A2A2A' }}
             >
-              <span style={{ fontSize: '16rem', lineHeight: 1 }}>{getCategoryEmoji(r2.category)}</span>
+              <span style={{ fontSize: '7rem', opacity: 0.25 }}>{getCategoryEmoji(r2.category)}</span>
             </div>
           )}
           <div
             className="absolute inset-0"
-            style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.45) 100%)' }}
+            style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.65) 100%)' }}
           />
-          <div
-            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-            style={{ background: 'rgba(255,255,255,0.07)' }}
-          />
-
-          <div className="relative z-10 text-center px-6 py-20">
-            {r2.isBye ? (
-              <>
-                <h2 className="text-5xl font-black text-white mb-3">부전승</h2>
-                <p className="text-sm text-white opacity-70">자동 진출</p>
-              </>
-            ) : (
-              <>
-                <p
-                  className="text-xs font-black tracking-widest uppercase mb-4"
-                  style={{ color: '#A8FFB8', opacity: 0.9 }}
-                >
-                  {r2.category.split('>').pop()?.trim()}
-                </p>
-                <h2
-                  className="font-black text-white mb-8 leading-tight"
-                  style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', textShadow: '2px 2px 8px rgba(0,0,0,0.5)' }}
-                >
-                  {r2.name}
-                </h2>
-                <div
-                  className="inline-flex items-center gap-2 px-7 py-3 font-black text-sm text-white"
-                  style={{ border: '2px solid rgba(255,255,255,0.8)', borderRadius: 2 }}
-                >
-                  투표하기 👆
-                </div>
-              </>
-            )}
+          {selectedSide === 'right' && (
+            <div className="absolute inset-0" style={{ background: 'rgba(255,215,0,0.12)' }} />
+          )}
+          <div className="absolute bottom-0 left-0 right-0 p-4 text-right">
+            <div className="mb-2 flex justify-end">
+              <span
+                className="text-xs font-bold px-3 py-1 rounded-full"
+                style={{ background: '#FF7F50', color: '#FFFFFF' }}
+              >
+                Choice B
+              </span>
+            </div>
+            <h2 className="text-2xl font-black text-white leading-tight">
+              {r2.isBye ? '부전승' : r2.name}
+            </h2>
           </div>
         </button>
       </div>
 
+<<<<<<< Updated upstream
       {/* ── VS 중앙 배지 ── */}
       <div
         className="absolute inset-y-0 z-20 flex flex-col items-center justify-center pointer-events-none"
@@ -262,72 +334,66 @@ export default function TournamentPage() {
 
       {/* ── 상단 헤더 오버레이 ── */}
       <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-4 py-3">
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-1 text-xs font-bold px-3 py-2 transition-opacity hover:opacity-80"
-          style={{
-            background: 'rgba(0,0,0,0.55)',
-            color: '#FFFFFF',
-            backdropFilter: 'blur(6px)',
-            borderRadius: 4,
-          }}
-        >
-          ← 대진표
-        </button>
-
-        <div
-          className="text-xs font-black tracking-wider px-3 py-2"
-          style={{
-            background: 'rgba(0,0,0,0.55)',
-            color: '#FFFFFF',
-            backdropFilter: 'blur(6px)',
-            borderRadius: 4,
-          }}
-        >
-          토너먼트 {getRoundName()}
-        </div>
-
-        <button
-          onClick={() => router.push('/location')}
-          className="text-xs font-black px-3 py-2 transition-opacity hover:opacity-80"
-          style={{ background: '#FF9900', color: '#1A1A1A', borderRadius: 4 }}
-        >
-          STOP 토너먼트
-        </button>
-      </div>
-
-      {/* ── 하단 바 ── */}
+=======
+      {/* 하단 버튼 바 */}
       <div
-        className="absolute bottom-0 left-0 right-0 z-30 flex items-center justify-between px-6 py-3"
-        style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)' }}
+        className="flex-shrink-0 px-4 py-4 flex items-center gap-3"
+        style={{ background: '#1a2a4a' }}
       >
-        <div className="flex items-center gap-2">
-          <div className="flex -space-x-1">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="w-5 h-5 rounded-full flex-shrink-0"
-                style={{ background: `hsl(${i * 80}, 60%, 55%)`, border: '1.5px solid #222' }}
-              />
-            ))}
-          </div>
-          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>
-            {currentMatchIndex + 1}/{totalMatches} 경기
-          </span>
-        </div>
-
-        <div
-          className="text-xs font-black px-3 py-1"
-          style={{ background: '#FF9900', color: '#1A1A1A', borderRadius: 2 }}
+>>>>>>> Stashed changes
+        <button
+          onClick={handleGoBack}
+          className="flex-1 py-3.5 flex items-center justify-center gap-2 font-semibold text-sm rounded-2xl transition-opacity hover:opacity-70"
+          style={{ background: 'rgba(255,255,255,0.12)', color: '#FFFFFF' }}
         >
-          {getRoundName()}
-        </div>
-
-        <span className="text-xs font-bold" style={{ color: 'rgba(255,255,255,0.6)' }}>
-          {nextRoundWinners.length}승 진출
-        </span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M9 14l-4-4 4-4M5 10h14"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          이전으로
+        </button>
+        <button
+          onClick={handleConfirm}
+          disabled={!selectedSide}
+          className="flex-1 py-3.5 flex items-center justify-center gap-2 font-bold text-sm rounded-2xl transition-opacity hover:opacity-80 disabled:opacity-40"
+          style={{ background: '#FFD700', color: '#1a2a4a' }}
+        >
+          선택하기
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M9 18l6-6-6-6"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
       </div>
 
+      {/* 진행도 */}
+      <div
+        className="flex-shrink-0 px-4 pb-4 flex flex-col items-center gap-2"
+        style={{ background: '#1a2a4a' }}
+      >
+        <span className="text-[10px] font-bold tracking-widest" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          TOURNAMENT PROGRESS
+        </span>
+        <div className="w-full h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }}>
+          <div
+            className="h-1 rounded-full transition-all duration-300"
+            style={{
+              width: `${totalMatches > 0 ? (currentMatchIndex / totalMatches) * 100 : 0}%`,
+              background: '#FFD700',
+            }}
+          />
+        </div>
+      </div>
     </div>
   );
 }

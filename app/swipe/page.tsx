@@ -28,7 +28,7 @@ function getCategoryEmoji(category: string) {
 }
 
 function getDistanceText(distance?: string) {
-  if (!distance) return '거리 정보 없음';
+  if (!distance) return '';
   const dist = parseInt(distance);
   if (dist < 1000) return `${dist}m`;
   return `${(dist / 1000).toFixed(1)}km`;
@@ -53,7 +53,7 @@ const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(
     const isTop = stackIndex === 0;
 
     const x = useMotionValue(0);
-    const rotate = useTransform(x, [-220, 220], [-12, 12]);
+    const rotate = useTransform(x, [-220, 220], [-10, 10]);
     const pickOpacity = useTransform(x, [30, 100], [0, 1]);
     const skipOpacity = useTransform(x, [-100, -30], [1, 0]);
 
@@ -104,8 +104,8 @@ const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(
         {/* PICK 스탬프 */}
         {isTop && (
           <motion.div
-            style={{ opacity: pickOpacity, border: '3px solid #FF9900', color: '#FF9900' }}
-            className="absolute top-5 left-4 z-20 font-black text-lg px-3 py-1 select-none pointer-events-none -rotate-12"
+            style={{ opacity: pickOpacity, border: '3px solid #FF7F50', color: '#FF7F50' }}
+            className="absolute top-5 left-4 z-20 font-black text-lg px-3 py-1 select-none pointer-events-none -rotate-12 rounded-lg"
           >
             PICK
           </motion.div>
@@ -114,7 +114,7 @@ const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(
         {isTop && (
           <motion.div
             style={{ opacity: skipOpacity, border: '3px solid #8C8C8C', color: '#8C8C8C' }}
-            className="absolute top-5 right-4 z-20 font-black text-lg px-3 py-1 select-none pointer-events-none rotate-12"
+            className="absolute top-5 right-4 z-20 font-black text-lg px-3 py-1 select-none pointer-events-none rotate-12 rounded-lg"
           >
             SKIP
           </motion.div>
@@ -125,23 +125,12 @@ const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(
           className="overflow-hidden mx-1 select-none"
           style={{
             background: '#FFFFFF',
-            border: '2px solid #E8DDB8',
-            boxShadow: isTop ? '6px 6px 0 rgba(0,0,0,0.10)' : '3px 3px 0 rgba(0,0,0,0.06)',
+            borderRadius: 20,
+            boxShadow: isTop
+              ? '0 12px 40px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.07)'
+              : '0 6px 20px rgba(0,0,0,0.07)',
           }}
         >
-          {/* 상단 배지 */}
-          <div className="px-4 pt-3 pb-2 flex items-center justify-between">
-            <span
-              className="text-xs font-black tracking-widest uppercase px-2 py-0.5"
-              style={{ background: '#FF9900', color: '#FFFFFF' }}
-            >
-              SEASON IN COLLECTION
-            </span>
-            <span className="text-xs" style={{ color: '#8C8C8C' }}>
-              {getDistanceText(restaurant.distance)}
-            </span>
-          </div>
-
           {/* 이미지 영역 */}
           <div
             className="w-full overflow-hidden relative"
@@ -159,23 +148,35 @@ const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(
                 <span className="text-8xl">{getCategoryEmoji(restaurant.category)}</span>
               </div>
             )}
-            {/* PICK 오버레이 라벨 */}
-            <div
-              className="absolute top-3 right-3 text-xs font-black px-2 py-0.5"
-              style={{ background: '#1C8B40', color: '#FFFFFF' }}
-            >
-              PICK
-            </div>
+            {/* 거리 배지 */}
+            {restaurant.distance && (
+              <div
+                className="absolute top-3 right-3 text-xs font-semibold px-3 py-1"
+                style={{
+                  background: 'rgba(255,255,255,0.95)',
+                  color: '#8C8C8C',
+                  borderRadius: 20,
+                }}
+              >
+                {getDistanceText(restaurant.distance)}
+              </div>
+            )}
           </div>
 
           {/* 정보 */}
-          <div className="px-4 py-4">
-            <h2 className="text-xl font-black mb-1 truncate" style={{ color: '#1A1A1A' }}>
+          <div className="px-5 py-4">
+            {/* 카테고리 칩 */}
+            <div className="mb-2">
+              <span
+                className="text-xs font-semibold px-3 py-1 rounded-full"
+                style={{ background: '#E6F7F7', color: '#2EB8B8' }}
+              >
+                {restaurant.category.split('>').pop()?.trim()}
+              </span>
+            </div>
+            <h2 className="text-xl font-bold mb-1 truncate" style={{ color: '#1a2a4a' }}>
               {restaurant.name}
             </h2>
-            <p className="text-xs mb-3 font-bold italic" style={{ color: '#FF9900' }}>
-              {restaurant.category.split('>').pop()?.trim()}
-            </p>
             <p className="text-xs leading-relaxed" style={{ color: '#8C8C8C' }}>
               {restaurant.address}
             </p>
@@ -227,6 +228,12 @@ export default function SwipePage() {
     const restaurant = sortedRestaurants[currentIndex];
     if (dir === 'right' && restaurant) {
       setSwipedRight((prev) => [...prev, restaurant]);
+<<<<<<< Updated upstream
+=======
+      if (user?.uid && user.school?.domain) {
+        recordSchoolLike(user.school.domain, user.uid, restaurant);
+      }
+>>>>>>> Stashed changes
     }
     setCurrentIndex((prev) => prev + 1);
     setIsAnimating(false);
@@ -266,8 +273,9 @@ export default function SwipePage() {
   if (restaurants.length === 0) return null;
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#F5EDD0' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: '#F8F9FA' }}>
       {/* 헤더 */}
+<<<<<<< Updated upstream
       <header style={{ borderBottom: '1px solid #E8DDB8' }}>
         <div className="flex items-center justify-between px-6 pt-5 pb-3">
           <div className="flex items-center gap-2">
@@ -302,37 +310,75 @@ export default function SwipePage() {
               {user ? user.nickname?.[0]?.toUpperCase() || '?' : '?'}
             </div>
           </div>
+=======
+      <header
+        className="flex items-center justify-between px-5 pt-5 pb-4"
+        style={{ background: '#FFFFFF', borderBottom: '1px solid #F0F0F0' }}
+      >
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.back()}
+            className="w-9 h-9 flex items-center justify-center transition-opacity hover:opacity-70 rounded-full"
+            style={{ background: '#F5F5F5' }}
+            aria-label="뒤로가기"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M19 12H5M5 12l7-7M5 12l7 7"
+                stroke="#1a2a4a"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          <span className="text-base font-bold" style={{ color: '#1a2a4a' }}>
+            음식 선택
+          </span>
+        </div>
+        <div
+          className="px-3 py-1.5 rounded-full"
+          style={{ background: '#E6F7F7' }}
+        >
+          <span className="text-sm font-bold" style={{ color: '#2EB8B8' }}>
+            {selectedCount} / {total}
+          </span>
+>>>>>>> Stashed changes
         </div>
       </header>
 
-      {/* 섹션 라벨 */}
-      <div className="px-6 pt-4 pb-2 flex items-center justify-between">
-        <p className="text-xs font-black tracking-widest uppercase" style={{ color: '#FF9900' }}>
-          SEASON IN COLLECTION
-        </p>
-        <div className="text-right">
-          <div
-            className="inline-block px-3 py-1.5 font-black text-sm"
-            style={{ background: '#1A1A1A', color: '#FFFFFF' }}
-          >
-            <span style={{ color: '#FF9900' }}>{selectedCount}</span>
-            <span> / {total}개 선택됨</span>
-          </div>
-        </div>
+      {/* 진행 바 */}
+      <div style={{ background: '#F0F0F0', height: 4 }}>
+        <div
+          className="transition-all duration-300"
+          style={{ width: `${progressPercent}%`, background: '#2EB8B8', height: 4 }}
+        />
       </div>
 
       {/* 카드 영역 */}
-      <div className="flex-1 flex items-start justify-center px-4 pt-2">
+      <div className="flex-1 flex items-start justify-center px-4 pt-6">
         {allSwiped ? (
-          <div className="text-center mt-12">
+          <div className="text-center mt-12 px-6">
             <div
-              className="text-5xl mb-4 font-black"
-              style={{ color: '#FF9900' }}
+              className="w-20 h-20 rounded-full flex items-center justify-center text-3xl mx-auto mb-4"
+              style={{ background: '#E6F7F7', color: '#2EB8B8' }}
             >
               ✓
             </div>
+<<<<<<< Updated upstream
             <h2 className="text-2xl font-black mb-2" style={{ color: '#FFFFFF' }}>모두 확인했어요</h2>
             <p style={{ color: '#8C8C8C' }}>{selectedCount}개 선택됨</p>
+=======
+            <h2 className="text-2xl font-bold mb-2" style={{ color: '#1a2a4a' }}>
+              모두 확인했어요!
+            </h2>
+            <p style={{ color: '#8C8C8C' }}>{selectedCount}개 선택됨</p>
+            {redirectCountdown !== null && (
+              <p className="mt-4 text-xs" style={{ color: '#8C8C8C' }}>
+                {redirectCountdown}초 후 위치 선택으로 돌아갑니다
+              </p>
+            )}
+>>>>>>> Stashed changes
           </div>
         ) : (
           <div className="relative w-full max-w-sm" style={{ height: 380 }}>
@@ -356,77 +402,120 @@ export default function SwipePage() {
       {/* 하단 컨트롤 */}
       <div className="px-6 pb-6 pt-4">
         {!allSwiped && (
-          <div className="flex items-center justify-center gap-6 mb-4">
-            <div className="flex flex-col items-center gap-1">
+          <div className="flex items-center justify-center gap-6 mb-5">
+            {/* 건너뛰기 버튼 */}
+            <div className="flex flex-col items-center gap-1.5">
               <button
                 onClick={() => handleButtonSwipe('left')}
                 disabled={isAnimating}
-                className="w-14 h-14 flex items-center justify-center text-xl font-bold transition-all hover:opacity-70 active:scale-95 disabled:opacity-30 rounded-full"
-                style={{ background: '#FFFFFF', color: '#8C8C8C', border: '2px solid #E8DDB8' }}
+                className="w-14 h-14 flex items-center justify-center transition-all hover:opacity-70 active:scale-95 disabled:opacity-30 rounded-full"
+                style={{
+                  background: '#FFFFFF',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.10)',
+                  border: '1.5px solid #EBEBEB',
+                }}
                 aria-label="건너뛰기"
               >
-                ✕
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M18 6L6 18M6 6l12 12"
+                    stroke="#8C8C8C"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                  />
+                </svg>
               </button>
+<<<<<<< Updated upstream
               <span className="text-xs" style={{ color: '#8C8C8C' }}>삭제 (빨강)</span>
+=======
+              <span className="text-xs" style={{ color: '#8C8C8C' }}>건너뛰기</span>
+>>>>>>> Stashed changes
             </div>
-            <div className="flex flex-col items-center gap-1">
+
+            {/* 선택 버튼 */}
+            <div className="flex flex-col items-center gap-1.5">
               <button
                 onClick={() => handleButtonSwipe('right')}
                 disabled={isAnimating}
-                className="w-16 h-16 flex items-center justify-center text-2xl transition-all hover:opacity-80 active:scale-95 disabled:opacity-30 rounded-full"
-                style={{ background: '#FF9900', color: '#FFFFFF', border: '2px solid #FF9900' }}
+                className="w-16 h-16 flex items-center justify-center transition-all hover:opacity-80 active:scale-95 disabled:opacity-30 rounded-full"
+                style={{
+                  background: '#FF7F50',
+                  boxShadow: '0 6px 20px rgba(255,127,80,0.40)',
+                }}
                 aria-label="선택"
               >
-                ✓
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M5 12l5 5L19 7"
+                    stroke="#FFFFFF"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
               </button>
+<<<<<<< Updated upstream
               <span className="text-xs font-bold" style={{ color: '#FF9900' }}>선택 (초록)</span>
+=======
+              <span className="text-xs font-semibold" style={{ color: '#FF7F50' }}>선택</span>
+>>>>>>> Stashed changes
             </div>
-            <div className="flex flex-col items-center gap-1">
+
+            {/* 즐겨찾기 버튼 */}
+            <div className="flex flex-col items-center gap-1.5">
               <button
+<<<<<<< Updated upstream
                 onClick={() => {}}
                 className="w-14 h-14 flex items-center justify-center text-xl transition-all hover:opacity-70 active:scale-95 rounded-full"
                 style={{ background: '#FFFFFF', color: '#8C8C8C', border: '2px solid #E8DDB8' }}
+=======
+                onClick={() => {
+                  const current = sortedRestaurants[currentIndex];
+                  if (current) setListModalRestaurant(current);
+                }}
+                disabled={isAnimating}
+                className="w-14 h-14 flex items-center justify-center transition-all hover:opacity-70 active:scale-95 disabled:opacity-30 rounded-full"
+                style={{
+                  background: '#E0FAF0',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                }}
+>>>>>>> Stashed changes
                 aria-label="즐겨찾기"
               >
-                ★
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2v16z"
+                    stroke="#2EB8B8"
+                    strokeWidth="2"
+                    strokeLinejoin="round"
+                  />
+                </svg>
               </button>
               <span className="text-xs" style={{ color: '#8C8C8C' }}>즐겨찾기</span>
             </div>
           </div>
         )}
 
-        {/* 진행 바 */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-bold" style={{ color: '#8C8C8C' }}>트레이닝 진척도</span>
-            <span className="text-xs font-black" style={{ color: '#FF9900' }}>{Math.round(progressPercent)}% 에너지</span>
-          </div>
-          <div className="h-2 overflow-hidden" style={{ background: '#E8DDB8', borderRadius: 2 }}>
-            <div
-              className="h-2 transition-all duration-300"
-              style={{ width: `${progressPercent}%`, background: '#FF9900', borderRadius: 2 }}
-            />
-          </div>
-        </div>
-
+        {/* 토너먼트 시작 버튼 */}
         <button
           onClick={startTournament}
           disabled={!canStart}
-          className="w-full py-4 text-sm font-black tracking-widest uppercase transition-opacity hover:opacity-80 disabled:opacity-40"
+          className="w-full py-4 text-sm font-bold transition-opacity hover:opacity-80 disabled:opacity-40 rounded-2xl"
           style={{
-            background: canStart ? '#1A1A1A' : '#E8DDB8',
+            background: canStart ? '#FF7F50' : '#E0E0E0',
             color: canStart ? '#FFFFFF' : '#8C8C8C',
-            borderRadius: 2,
+            boxShadow: canStart ? '0 6px 20px rgba(255,127,80,0.35)' : 'none',
           }}
         >
           {selectedCount === 0
             ? '아직 선택한 식당이 없어요'
             : selectedCount === 1
-            ? '바로 우승 확정 (1개)'
+            ? '바로 결정 (1개)'
             : `토너먼트 시작 (${selectedCount}개)`}
         </button>
       </div>
 
+<<<<<<< Updated upstream
       {/* 하단 흐르는 텍스트 */}
       <div
         className="py-2 overflow-hidden"
@@ -438,6 +527,30 @@ export default function SwipePage() {
           ))}
         </div>
       </div>
+=======
+      {/* 즐겨찾기 모달 */}
+      {listModalRestaurant && (
+        <ListSelectorModal
+          restaurant={listModalRestaurant}
+          onClose={() => setListModalRestaurant(null)}
+          onSaved={(listTitle) => {
+            setListModalRestaurant(null);
+            setSavedToast(`"${listTitle}" 에 저장됨`);
+            setTimeout(() => setSavedToast(null), 2500);
+          }}
+        />
+      )}
+
+      {/* 저장 토스트 */}
+      {savedToast && (
+        <div
+          className="fixed bottom-24 left-1/2 -translate-x-1/2 px-5 py-3 text-sm font-semibold z-50 pointer-events-none rounded-xl"
+          style={{ background: '#1a2a4a', color: '#FFFFFF', whiteSpace: 'nowrap' }}
+        >
+          {savedToast}
+        </div>
+      )}
+>>>>>>> Stashed changes
     </div>
   );
 }
