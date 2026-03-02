@@ -20,12 +20,6 @@ interface KakaoUserInfo {
 }
 
 export async function GET(request: NextRequest) {
-  console.log("🔥🔥🔥 CALLBACK HIT 🔥🔥🔥");
-
-  const url = new URL(request.url);
-  console.log("🔵 FULL URL =", request.url);
-
-export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get('code');
   const error = searchParams.get('error');
@@ -144,7 +138,7 @@ export async function GET(request: NextRequest) {
       });
       if (userId) params.set('userId', userId);
       if (profileImage) params.set('profileImage', profileImage);
-
+	  
 	  console.log("FINAL =", `${appRedirectUri}?${params}`);
       return NextResponse.redirect(`${appRedirectUri}?${params.toString()}`);
     } else {
