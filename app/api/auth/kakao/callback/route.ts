@@ -20,6 +20,8 @@ interface KakaoUserInfo {
 }
 
 export async function GET(request: NextRequest) {
+  console.log("🔥 CALLBACK HIT");
+
   const { searchParams } = new URL(request.url);
   const code = searchParams.get('code');
   const error = searchParams.get('error');
@@ -27,6 +29,7 @@ export async function GET(request: NextRequest) {
 
   // state = 앱에서 전달한 redirect_uri (route.ts에서 Kakao state로 넘김)
   const appRedirectUri = searchParams.get('state') ?? '';
+  console.log("🟡 state =", appRedirectUri);
   const isAppCallback = appRedirectUri.startsWith('dangmatch') || appRedirectUri.startsWith('exp://');
 
   const errorRedirect = (msg: string) =>
@@ -139,8 +142,9 @@ export async function GET(request: NextRequest) {
       if (userId) params.set('userId', userId);
       if (profileImage) params.set('profileImage', profileImage);
 	  
-	  console.log("FINAL =", `${appRedirectUri}?${params}`);
-      return NextResponse.redirect(`${appRedirectUri}?${params.toString()}`);
+	  const finalUrl = `${appRedirectUri}?${params.toString()}`;
+	  console.log("🚀 FINAL REDIRECT =", finalUrl);
+      return NextResponse.redirect(finalUrl);
     } else {
       // ── 웹 경로: Firebase Custom Token으로 리다이렉트 ──
       const adminAuth = getAdminAuth();
