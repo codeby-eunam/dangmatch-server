@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
       const statsRef = db.collection('meta').doc('stats');
       const now = new Date().toISOString();
 
-      const { isNewUser, joinOrder, userId, createdAt, badges } =
+      const { isNewUser, joinOrder, userId, createdAt, badges, savedNickname } =
         await db.runTransaction(async (tx) => {
           const userSnap = await tx.get(userRef);
 
@@ -112,11 +112,13 @@ export async function GET(request: NextRequest) {
               userId: null as string | null,
               createdAt: now,
               badges: resolvedBadges,
+              savedNickname: null as string | null,
             };
           } else {
             const data = userSnap.data()!;
+            // 기존 유저: 카카오 이름으로 DB 닉네임을 덮어쓰지 않음
+            // profileImage만 업데이트 (카카오 프로필 사진은 변경될 수 있으므로)
             tx.update(userRef, {
-              nickname,
               ...(profileImage && { profileImage }),
               updatedAt: FieldValue.serverTimestamp(),
             });
@@ -127,6 +129,7 @@ export async function GET(request: NextRequest) {
               userId: (data.userId as string | null) ?? null,
               createdAt: (data.createdAt as string) ?? now,
               badges: (data.badges as string[]) ?? [],
+              savedNickname: (data.nickname as string) ?? nickname,
             };
           }
         });
@@ -134,7 +137,8 @@ export async function GET(request: NextRequest) {
       const params = new URLSearchParams({
         kakaoId,
         isNewUser: String(isNewUser),
-        nickname,
+        // 기존 유저는 DB에 저장된 닉네임, 신규 유저는 카카오 닉네임(임시)
+        nickname: savedNickname ?? nickname,
         joinOrder: String(joinOrder),
         badges: badges.join(','),
         createdAt,
