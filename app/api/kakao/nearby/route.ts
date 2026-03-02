@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     }));
 
     const seen = new Set();
-    const documents = pages
+    const rawDocuments = pages
       .flatMap(data => data.documents || [])
       .filter(doc => {
         if (seen.has(doc.id)) return false;
@@ -58,6 +58,8 @@ export async function GET(request: NextRequest) {
         return true;
       });
 
+	const documents = rawDocuments;
+	
     console.log(`✅ [${categoryParam}] 식당 ${documents.length}개 찾음`);
 
     return Response.json({ documents });

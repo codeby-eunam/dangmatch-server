@@ -67,7 +67,7 @@ export default function RestaurantsPage() {
 
   return (
     <div className="min-h-screen pb-28" style={{ background: '#FFFDF9' }}>
-      {/* 헤더 */}
+    	{/* 헤더 */}
       <div className="sticky top-0 z-10" style={{ background: '#FFFDF9', borderBottom: '1px solid #F0EDEA' }}>
         <div className="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between">
           <div>
@@ -85,7 +85,7 @@ export default function RestaurantsPage() {
         </div>
       </div>
 
-      {/* 안내 */}
+       {/* 안내 */}
       {allRestaurants.length > 16 && (
         <div className="max-w-2xl mx-auto px-6 py-3 mt-4">
           <p className="text-xs" style={{ color: '#8C8C8C', borderLeft: '3px solid #FF4D2E', paddingLeft: 10 }}>
@@ -94,7 +94,7 @@ export default function RestaurantsPage() {
         </div>
       )}
 
-      {/* 식당 목록 */}
+       {/* 식당 목록 */}
       <div className="max-w-2xl mx-auto px-6 py-4 space-y-2">
         {displayRestaurants.map((restaurant) => {
           const isSelected = selected.has(restaurant.id);

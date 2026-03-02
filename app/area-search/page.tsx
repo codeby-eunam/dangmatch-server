@@ -1,3 +1,6 @@
+// DANGMATCH API SERVER
+
+/*
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -67,3 +70,4 @@ export default function AreaSearchPage() {
     </div>
   );
 }
+*/

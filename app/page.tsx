@@ -2,7 +2,7 @@
 
 import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import KakaoLoginButton from '@/components/KakaoLoginButton';
+import KakaoLoginButton from '@/_components/KakaoLoginButton';
 import { useAuthStore } from '@/lib/store/auth';
 
 function HomePageInner() {
@@ -26,9 +26,9 @@ function HomePageInner() {
             />
             <circle cx="9" cy="7" r="2.5" fill="#FFFFFF" />
           </svg>
-          <span className="flex-1 text-sm font-medium" style={{ color: '#1a2a4a' }}>
+          {/* <span className="flex-1 text-sm font-medium" style={{ color: '#1a2a4a' }}>
             {user?.school?.name ? `${user.school.name} 근처` : '위치를 설정하세요'}
-          </span>
+          </span> */}
           <button
             onClick={() => router.push('/location')}
             className="transition-opacity hover:opacity-70"

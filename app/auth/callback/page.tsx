@@ -1,3 +1,6 @@
+// DANGMATCH API SERVER
+
+/*
 'use client';
 
 import { useEffect, useRef, useState, Suspense } from 'react';
@@ -90,3 +93,4 @@ export default function AuthCallbackPage() {
     </Suspense>
   );
 }
+*/

@@ -1,3 +1,6 @@
+// DANGMATCH API SERVER
+
+/*
 'use client';
 
 import { useEffect } from 'react';
@@ -62,12 +65,9 @@ export default function ResultPage() {
       participants: swipedRestaurants.map((r) => r.id),
       location: location?.address ?? (location ? `${location.lat},${location.lng}` : ''),
     });
-<<<<<<< Updated upstream
-=======
     if (user?.uid && user.school?.domain) {
       recordSchoolWin(user.school.domain, user.uid, finalWinner);
     }
->>>>>>> Stashed changes
   }, [finalWinner, router]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!finalWinner) return null;
@@ -84,12 +84,12 @@ export default function ResultPage() {
       className="min-h-screen flex flex-col items-center relative overflow-hidden"
       style={{ background: '#F8F9FA' }}
     >
-      {/* 컨페티 */}
+    //   { 컨페티 }
       {CONFETTI.map((c, i) => (
         <ConfettiPiece key={i} {...c} />
       ))}
 
-      {/* 다시하기 버튼 */}
+    //   { 다시하기 버튼 }
       <div className="relative z-10 mt-10 mb-2">
         <button
           onClick={handleRestart}
@@ -104,7 +104,7 @@ export default function ResultPage() {
         </button>
       </div>
 
-      {/* 타이틀 */}
+    //   { 타이틀 }
       <div className="relative z-10 text-center px-6 mb-6">
         <p className="text-sm font-bold mb-2" style={{ color: '#FF7F50' }}>
           오늘의 우승!
@@ -114,9 +114,9 @@ export default function ResultPage() {
         </h1>
       </div>
 
-      {/* 우승 카드 영역 */}
+    //   { 우승 카드 영역 }
       <div className="relative z-10 w-full max-w-sm px-5">
-        {/* 왕관 배지 */}
+        { 왕관 배지 }
         <div className="flex justify-center mb-[-22px] relative z-10">
           <div
             className="w-12 h-12 rounded-full flex items-center justify-center text-xl"
@@ -129,7 +129,7 @@ export default function ResultPage() {
           </div>
         </div>
 
-        {/* 카드 */}
+        // { 카드 }
         <div
           style={{
             background: '#FFFFFF',
@@ -138,7 +138,7 @@ export default function ResultPage() {
             boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
           }}
         >
-          {/* 이미지 영역 */}
+        //   { 이미지 영역 }
           <div className="relative" style={{ height: 220 }}>
             {finalWinner.images?.[0] ? (
               <>
@@ -147,7 +147,7 @@ export default function ResultPage() {
                   alt={finalWinner.name}
                   className="w-full h-full object-cover"
                 />
-                {/* WINNER 텍스트 오버레이 */}
+                // { WINNER 텍스트 오버레이 }
                 <div
                   className="absolute inset-0 flex flex-col items-center justify-center"
                   style={{ background: 'rgba(30,92,92,0.55)' }}
@@ -169,9 +169,9 @@ export default function ResultPage() {
             )}
           </div>
 
-          {/* 정보 */}
+        //   { 정보 }
           <div className="px-5 py-5">
-            {/* 별점 (장식) */}
+            // { 별점 (장식) }
             <div className="flex items-center gap-1 mb-2">
               <span style={{ color: '#FFD700', fontSize: 14 }}>★</span>
               <span className="text-sm font-bold" style={{ color: '#1a2a4a' }}>4.9</span>
@@ -188,7 +188,7 @@ export default function ResultPage() {
           </div>
         </div>
 
-        {/* 액션 버튼 */}
+        // { 액션 버튼 }
         <div className="flex flex-col gap-3 mt-5 mb-8">
           {finalWinner.kakaoUrl ? (
             <a
@@ -250,18 +250,7 @@ export default function ResultPage() {
         </div>
       </div>
 
-<<<<<<< Updated upstream
-        {/* 재시작 링크 */}
-        <button
-          onClick={handleRestart}
-          className="mt-5 text-sm font-bold transition-opacity hover:opacity-70"
-          style={{ color: 'rgba(255,255,255,0.8)' }}
-        >
-          ↩ 다시 토너먼트 하기
-        </button>
-      </main>
-=======
-      {/* 즐겨찾기 모달 */}
+    //   { 즐겨찾기 모달 }
       {listModalOpen && (
         <ListSelectorModal
           restaurant={finalWinner}
@@ -274,7 +263,7 @@ export default function ResultPage() {
         />
       )}
 
-      {/* 저장 토스트 */}
+    //   { 저장 토스트 }
       {savedToast && (
         <div
           className="fixed bottom-10 left-1/2 -translate-x-1/2 px-5 py-3 text-sm font-semibold z-50 pointer-events-none rounded-xl"
@@ -283,7 +272,7 @@ export default function ResultPage() {
           {savedToast}
         </div>
       )}
->>>>>>> Stashed changes
     </div>
   );
 }
+*/

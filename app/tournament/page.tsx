@@ -1,3 +1,6 @@
+// DANGMATCH API SERVER
+
+/*
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -128,7 +131,7 @@ export default function TournamentPage() {
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
-      {/* 헤더 */}
+      {/* 헤더 *}
       <header
         className="flex items-center justify-between px-4 py-3 flex-shrink-0"
         style={{ background: '#1E5C5C' }}
@@ -155,10 +158,10 @@ export default function TournamentPage() {
       </header>
 
 <<<<<<< Updated upstream
-      {/* ── 스플릿 화면 ── */}
+      {/* ── 스플릿 화면 ── *}
       <div className="h-full flex">
 =======
-      {/* 질문 텍스트 */}
+      {/* 질문 텍스트 *}
       <div
         className="py-4 text-center flex-shrink-0"
         style={{ background: '#1E5C5C' }}
@@ -169,9 +172,9 @@ export default function TournamentPage() {
       </div>
 >>>>>>> Stashed changes
 
-      {/* 스플릿 뷰 */}
+      {/* 스플릿 뷰 *}
       <div className="flex flex-1 relative overflow-hidden">
-        {/* 왼쪽 (Choice A) */}
+        {/* 왼쪽 (Choice A) *}
         <button
           onClick={() => !r1.isBye && setSelectedSide('left')}
           disabled={r1.isBye}
@@ -198,16 +201,16 @@ export default function TournamentPage() {
               <span style={{ fontSize: '7rem', opacity: 0.25 }}>{getCategoryEmoji(r1.category)}</span>
             </div>
           )}
-          {/* 어두운 그라디언트 오버레이 */}
+          {/* 어두운 그라디언트 오버레이 *}
           <div
             className="absolute inset-0"
             style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.65) 100%)' }}
           />
-          {/* 선택 시 하이라이트 */}
+          {/* 선택 시 하이라이트 *}
           {selectedSide === 'left' && (
             <div className="absolute inset-0" style={{ background: 'rgba(255,215,0,0.12)' }} />
           )}
-          {/* 하단 정보 */}
+          {/* 하단 정보 *}
           <div className="absolute bottom-0 left-0 right-0 p-4">
             <div className="mb-2">
               <span
@@ -223,7 +226,7 @@ export default function TournamentPage() {
           </div>
         </button>
 
-        {/* 중앙 분리선 */}
+        {/* 중앙 분리선 *}
         <div
           className="absolute inset-y-0 z-10 pointer-events-none"
           style={{
@@ -234,7 +237,7 @@ export default function TournamentPage() {
           }}
         />
 
-        {/* VS 배지 */}
+        {/* VS 배지 *}
         <div
           className="absolute z-20 flex flex-col items-center pointer-events-none"
           style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}
@@ -258,7 +261,7 @@ export default function TournamentPage() {
           </div>
         </div>
 
-        {/* 오른쪽 (Choice B) */}
+        {/* 오른쪽 (Choice B) /}
         <button
           onClick={() => !r2.isBye && setSelectedSide('right')}
           disabled={r2.isBye}
@@ -309,7 +312,7 @@ export default function TournamentPage() {
       </div>
 
 <<<<<<< Updated upstream
-      {/* ── VS 중앙 배지 ── */}
+      {/* ── VS 중앙 배지 ── *}
       <div
         className="absolute inset-y-0 z-20 flex flex-col items-center justify-center pointer-events-none"
         style={{ left: '50%', transform: 'translateX(-50%)', width: 64 }}
@@ -332,10 +335,10 @@ export default function TournamentPage() {
         <div className="flex-1" style={{ width: 2, background: 'rgba(255,255,255,0.2)' }} />
       </div>
 
-      {/* ── 상단 헤더 오버레이 ── */}
+      {/* ── 상단 헤더 오버레이 ── *}
       <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-4 py-3">
 =======
-      {/* 하단 버튼 바 */}
+      {/* 하단 버튼 바 *}
       <div
         className="flex-shrink-0 px-4 py-4 flex items-center gap-3"
         style={{ background: '#1a2a4a' }}
@@ -376,7 +379,7 @@ export default function TournamentPage() {
         </button>
       </div>
 
-      {/* 진행도 */}
+      {/* 진행도 /}
       <div
         className="flex-shrink-0 px-4 pb-4 flex flex-col items-center gap-2"
         style={{ background: '#1a2a4a' }}
@@ -397,3 +400,4 @@ export default function TournamentPage() {
     </div>
   );
 }
+  */

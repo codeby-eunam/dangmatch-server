@@ -37,8 +37,21 @@ export async function GET(request: NextRequest) {
     }
 
     console.log(`🔍 "${query}" 검색 결과: ${data.documents?.length}개`);
-    
-    return Response.json(data);
+
+	const enrichedDocuments = data.documents?.map((place: any) => {
+		const searchQuery = `${place.place_name} ${place.address_name}`;
+		return {
+			...place,
+			naver_url:  `https://m.map.naver.com/search2/search.naver?query=${encodeURIComponent(searchQuery)}#/search`
+		};
+	});
+
+	const enrichedData = {
+		...data,
+		documents: enrichedDocuments
+	};
+
+    return Response.json(enrichedData);
   } catch (error) {
     console.error('❌ 검색 에러:', error);
     return Response.json({ error: '검색 실패' }, { status: 500 });

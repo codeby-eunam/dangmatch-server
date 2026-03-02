@@ -1,3 +1,6 @@
+// DANGMATCH API SERVER
+
+/*
 'use client';
 
 import { useState } from 'react';
@@ -140,7 +143,7 @@ export default function LocationPage() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#FFFFFF' }}>
-      {/* 헤더 */}
+    //   { 헤더 }
       <header
         className="flex items-center justify-between px-6 py-4"
         style={{ borderBottom: '2px solid #1A1A1A' }}
@@ -165,7 +168,7 @@ export default function LocationPage() {
 
       <main className="flex-1 flex flex-col items-center justify-center px-6 py-10">
         <div className="w-full max-w-md">
-          {/* 타이틀 */}
+        //   { 타이틀 }
           <div className="mb-8">
             <h1 className="text-4xl font-black tracking-tight mb-2" style={{ color: '#1A1A1A' }}>
               어디에{' '}
@@ -176,7 +179,7 @@ export default function LocationPage() {
             </p>
           </div>
 
-          {/* 카테고리 필터 */}
+        //   { 카테고리 필터 }
           <div className="mb-6 p-4" style={{ background: '#F5EDD0', border: '1px solid #E8DDB8', borderRadius: 4 }}>
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs font-black tracking-widest uppercase" style={{ color: '#1A1A1A' }}>음식 종류</p>
@@ -207,7 +210,7 @@ export default function LocationPage() {
             </div>
           </div>
 
-          {/* 내 위치 찾기 버튼 */}
+        //   { 내 위치 찾기 버튼 }
           <button
             onClick={useCurrentLocation}
             disabled={loading}
@@ -217,7 +220,7 @@ export default function LocationPage() {
             {loading ? '위치 확인 중...' : '📍 내 위치 찾기'}
           </button>
 
-          {/* 검색 바 */}
+        //   { 검색 바 }
           <div className="flex gap-2 mb-4">
             <input
               type="text"
@@ -245,7 +248,7 @@ export default function LocationPage() {
             </button>
           </div>
 
-          {/* 에러 */}
+        //   { 에러 }
           {error && (
             <div
               className="mb-4 px-4 py-3 text-xs"
@@ -255,7 +258,7 @@ export default function LocationPage() {
             </div>
           )}
 
-          {/* 빠른 검색 */}
+        //   { 빠른 검색 }
           <div>
             <p className="text-xs font-bold mb-2" style={{ color: '#8C8C8C' }}>빠른 검색</p>
             <div className="flex flex-wrap gap-2">
@@ -276,3 +279,4 @@ export default function LocationPage() {
     </div>
   );
 }
+*/

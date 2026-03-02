@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import FeedbackButton from "@/components/FeedbackButton";
-import AuthSync from "@/components/AuthSync";
+import FeedbackButton from "@/_components/FeedbackButton";
+import AuthSync from "@/_components/AuthSync";
 import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({

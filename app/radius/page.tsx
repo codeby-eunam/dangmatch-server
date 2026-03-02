@@ -77,7 +77,7 @@ export default function RadiusPage() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#F5EDD0' }}>
-      {/* 헤더 */}
+        {/* 헤더  */}
       <header
         className="flex items-center justify-between px-6 py-4"
         style={{ borderBottom: '1px solid #E8DDB8' }}
@@ -104,7 +104,7 @@ export default function RadiusPage() {
 
       <main className="flex-1 flex flex-col items-center justify-center px-6 py-10">
         <div className="w-full max-w-md">
-          {/* 섹션 타이틀 */}
+        {/* //   { 섹션 타이틀 } */}
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-black tracking-tight mb-1" style={{ color: '#FF9900' }}>
               반경 조절
@@ -114,18 +114,18 @@ export default function RadiusPage() {
             </p>
           </div>
 
-          {/* 원형 반경 표시 */}
+        {/* //   { 원형 반경 표시 } */}
           <div className="flex justify-center mb-8">
             <div
               className="relative flex items-center justify-center"
               style={{ width: 180, height: 180 }}
             >
-              {/* 원형 배경 */}
+            {/* //   { 원형 배경 } */}
               <div
                 className="absolute inset-0 rounded-full"
                 style={{ border: '12px solid #E8DDB8' }}
               />
-              {/* 선택된 경우 오렌지 오버레이 */}
+            {/* //   { 선택된 경우 오렌지 오버레이 } */}
               {selectedOption && (
                 <div
                   className="absolute inset-0 rounded-full"
@@ -135,7 +135,7 @@ export default function RadiusPage() {
                   }}
                 />
               )}
-              {/* 중앙 텍스트 */}
+            {/* //   { 중앙 텍스트 } */}
               <div className="text-center z-10">
                 {selectedOption ? (
                   <>
@@ -162,7 +162,7 @@ export default function RadiusPage() {
             </div>
           </div>
 
-          {/* 반경 옵션 */}
+        {/* //   { 반경 옵션 } */}
           <div className="grid grid-cols-2 gap-2 mb-8">
             {RADIUS_OPTIONS.map((option) => {
               const selected = selectedRadius === option.value;
@@ -189,7 +189,7 @@ export default function RadiusPage() {
             })}
           </div>
 
-          {/* 위치 정보 */}
+        {/* //   { 위치 정보 } */}
           <div
             className="flex items-center gap-2 px-4 py-3 mb-6 text-xs"
             style={{ background: '#FFFFFF', border: '1px solid #E8DDB8', borderRadius: 4 }}
@@ -200,7 +200,7 @@ export default function RadiusPage() {
             </span>
           </div>
 
-          {/* 버튼 */}
+        {/* //   { 버튼 } */}
           <div className="flex gap-2">
             <button
               onClick={() => router.back()}

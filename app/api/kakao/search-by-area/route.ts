@@ -22,10 +22,23 @@ export async function GET(request: NextRequest) {
     );
 
     const data = await response.json();
+
+	const enrichedDocuments = data.documents?.map((place: any) => {
+		const searchQuery = `${place.place_name} ${place.address_name}`;
+		return {
+			...place,
+			naver_url:  `https://m.map.naver.com/search2/search.naver?query=${encodeURIComponent(searchQuery)}#/search`
+		};
+	});
     
+	const enrichedData = {
+		...data,
+		document: enrichedDocuments
+	};
+
     console.log(`🔍 "${query}" 검색 결과: ${data.documents?.length}개`);
     
-    return Response.json(data);
+    return Response.json(enrichedData);
   } catch (error) {
     return Response.json({ error: '검색 실패' }, { status: 500 });
   }

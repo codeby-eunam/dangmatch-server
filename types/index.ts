@@ -7,6 +7,7 @@ export interface Restaurant {
   lat: number;       // 위도 (Kakao y → parseFloat)
   lng: number;       // 경도 (Kakao x → parseFloat)
   kakaoUrl?: string; // 카카오맵 URL
+  naver_url?: string;
   distance?: string; // UI 표시용, Firestore 미저장
   images?: string[]; // 이미지 URL 배열
   isBye?: boolean;   // 토너먼트 부전승 카드
