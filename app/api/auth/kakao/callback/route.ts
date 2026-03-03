@@ -27,10 +27,11 @@ export async function GET(request: NextRequest) {
   const error = searchParams.get('error');
   const BASE_URL = new URL(request.url).origin;
 
-  // state = 앱에서 전달한 redirect_uri (route.ts에서 Kakao state로 넘김)
+  // state = 앱/웹에서 전달한 redirect_uri (route.ts에서 Kakao state로 넘김)
   const appRedirectUri = searchParams.get('state') ?? '';
   console.log("🟡 state =", appRedirectUri);
-  const isAppCallback = appRedirectUri.startsWith('dangmatch') || appRedirectUri.startsWith('exp://');
+  // redirect_uri가 있으면 (앱 딥링크, Expo Go, 웹앱 모두) 해당 URI로 리다이렉트
+  const isAppCallback = !!appRedirectUri;
 
   const errorRedirect = (msg: string) =>
     isAppCallback
