@@ -83,7 +83,7 @@ export default function ListDetailPage() {
     if (!list || !user || !titleDraft.trim() || savingTitle) return;
     setSavingTitle(true);
     try {
-      await updateListTitle(user.uid, listId, list.shareToken, titleDraft.trim());
+      await updateListTitle(user.uid, listId, titleDraft.trim());
       setList((prev) => prev ? { ...prev, title: titleDraft.trim() } : prev);
       setEditingTitle(false);
     } catch (err) {
@@ -117,7 +117,7 @@ export default function ListDetailPage() {
     if (!list || !user || addingId) return;
     setAddingId(restaurant.id);
     try {
-      await addRestaurantToList(user.uid, listId, list.shareToken, restaurant);
+      await addRestaurantToList(user.uid, listId, restaurant);
       setList((prev) => {
         if (!prev) return prev;
         if (prev.restaurants.some((r) => r.id === restaurant.id)) return prev;
@@ -149,7 +149,7 @@ export default function ListDetailPage() {
     if (!list || !user || removingId) return;
     setRemovingId(restaurantId);
     try {
-      await removeRestaurantFromList(user.uid, listId, list.shareToken, restaurantId);
+      await removeRestaurantFromList(user.uid, listId, restaurantId);
       setList((prev) =>
         prev ? { ...prev, restaurants: prev.restaurants.filter((r) => r.id !== restaurantId) } : prev
       );

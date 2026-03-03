@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   const ref = db.collection('school_feeds').doc('ynu').collection('restaurants').doc(restaurant.id);
   const snap = await ref.get();
 
-  if (snap.exists()) {
+  if (snap.exists) {
     await ref.update({
       nominateCount: FieldValue.increment(1),
       lastUpdated: FieldValue.serverTimestamp(),

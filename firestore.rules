@@ -38,20 +38,21 @@ service cloud.firestore {
     }
 
     // ── 유저 리스트 (서브컬렉션) ──────────────────────────────────────────────
-    // 본인만 읽기·쓰기
+    // 읽기: isPublic=true 이면 누구나 (공유 링크 열람), 아니면 본인만
+    // 쓰기: 서버(Admin SDK)를 통해서만 수행 — 클라이언트 직접 쓰기 차단
     match /users/{uid}/lists/{listId} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read: if resource.data.isPublic == true
+                  || (request.auth != null && request.auth.uid == uid);
+      allow write: if request.auth != null && request.auth.uid == uid;
     }
 
-    // ── 공유 리스트 ───────────────────────────────────────────────────────────
-    // 읽기: 누구나 (비로그인 공유 링크 열람)
-    // 쓰기: 소유자만 (create 포함 — resource가 없을 때는 request.resource 사용)
+    // ── 공유 토큰 맵핑 ────────────────────────────────────────────────────────
+    // shared_lists/{token} 은 이제 ownerUid + listId 맵핑만 보유 (데이터 없음).
+    // 읽기: 누구나 (shareToken → uid/listId 조회)
+    // 쓰기: 서버(Admin SDK)만 — 클라이언트 직접 쓰기 차단
     match /shared_lists/{token} {
       allow read: if true;
-      allow create: if request.auth != null
-        && request.auth.uid == request.resource.data.ownerUid;
-      allow update, delete: if request.auth != null
-        && request.auth.uid == resource.data.ownerUid;
+      allow write: if false;
     }
 
     // ── 학교 피드 ─────────────────────────────────────────────────────────────
