@@ -41,7 +41,7 @@ export default function ListSelectorModal({ restaurant, onClose, onSaved }: Prop
     }
     setSaving(list.id);
     try {
-      await addRestaurantToList(user!.uid, list.id, list.shareToken, restaurant);
+      await addRestaurantToList(user!.uid, list.id, restaurant);
       onSaved(list.title);
     } catch (err) {
       console.error(err);
@@ -55,7 +55,7 @@ export default function ListSelectorModal({ restaurant, onClose, onSaved }: Prop
     setCreating(true);
     try {
       const created = await createList(user.uid, newTitle.trim());
-      await addRestaurantToList(user.uid, created.id, created.shareToken, restaurant);
+      await addRestaurantToList(user.uid, created.id, restaurant);
       onSaved(created.title);
     } catch (err) {
       console.error(err);

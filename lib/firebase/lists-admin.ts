@@ -1,24 +1,12 @@
 /**
- * lists.ts — Firebase Client SDK 사용 (클라이언트 컴포넌트 전용)
+ * lists.ts — Firebase Admin SDK 사용 (서버 전용)
  *
- * 'use client' 페이지에서 직접 import.
- * API 라우트(서버)에서는 lists-admin.ts 를 사용할 것.
+ * Next.js API 라우트에서 호출되며, Admin SDK는 Firestore 보안 규칙을
+ * 우회하므로 별도 인증 없이 users/{uid}/lists 를 안전하게 읽기·쓰기 가능.
  */
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  updateDoc,
-  writeBatch,
-  serverTimestamp,
-  Timestamp,
-  arrayUnion,
-  query,
-  orderBy,
-} from 'firebase/firestore';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { nanoid } from 'nanoid';
-import { db } from './client';
+import { getAdminDb } from './admin';
 import type { Restaurant, RestaurantList, SharedList } from '@/types';
 
 // ─── 내부 유틸 ──────────────────────────────────────────────────────────────
@@ -29,21 +17,31 @@ function toISO(ts: unknown): string {
   return new Date().toISOString();
 }
 
+/**
+ * shared_lists 에서 충돌하지 않는 8자리 토큰 생성.
+ * shared_lists 는 이제 토큰 → uid/listId 맵핑 전용.
+ */
 async function generateUniqueToken(): Promise<string> {
+  const db = getAdminDb();
   for (let i = 0; i < 5; i++) {
     const token = nanoid(8);
-    const snap = await getDoc(doc(db, 'shared_lists', token));
-    if (!snap.exists()) return token;
+    const snap = await db.collection('shared_lists').doc(token).get();
+    if (!snap.exists) return token;
   }
   throw new Error('[lists] shareToken 생성 실패: 5회 충돌');
 }
 
 // ─── 조회 ───────────────────────────────────────────────────────────────────
 
+/** 유저의 모든 리스트 (최신순) */
 export async function getUserLists(uid: string): Promise<RestaurantList[]> {
-  const ref = collection(db, 'users', uid, 'lists');
-  const q = query(ref, orderBy('updatedAt', 'desc'));
-  const snap = await getDocs(q);
+  const db = getAdminDb();
+  const snap = await db
+    .collection('users').doc(uid)
+    .collection('lists')
+    .orderBy('updatedAt', 'desc')
+    .get();
+
   return snap.docs.map((d) => {
     const data = d.data();
     return {
@@ -58,10 +56,12 @@ export async function getUserLists(uid: string): Promise<RestaurantList[]> {
   });
 }
 
+/** 특정 리스트 조회 (편집용) */
 export async function getList(uid: string, listId: string): Promise<RestaurantList | null> {
-  const snap = await getDoc(doc(db, 'users', uid, 'lists', listId));
-  if (!snap.exists()) return null;
-  const data = snap.data();
+  const db = getAdminDb();
+  const snap = await db.collection('users').doc(uid).collection('lists').doc(listId).get();
+  if (!snap.exists) return null;
+  const data = snap.data()!;
   return {
     id: snap.id,
     title: data.title ?? '',
@@ -73,15 +73,23 @@ export async function getList(uid: string, listId: string): Promise<RestaurantLi
   };
 }
 
-/** 공개 열람 — 2단계 조회 (token → uid/listId → 실제 데이터) */
+/**
+ * 공개 열람 — 비로그인 가능.
+ * shared_lists/{token} 에서 ownerUid/listId 조회 후
+ * users/{uid}/lists/{listId} 에서 실제 데이터를 읽는다.
+ */
 export async function getSharedList(shareToken: string): Promise<SharedList | null> {
-  const tokenSnap = await getDoc(doc(db, 'shared_lists', shareToken));
-  if (!tokenSnap.exists()) return null;
-  const { ownerUid, listId } = tokenSnap.data();
+  const db = getAdminDb();
 
-  const listSnap = await getDoc(doc(db, 'users', ownerUid, 'lists', listId));
-  if (!listSnap.exists()) return null;
-  const data = listSnap.data();
+  // 1단계: 토큰 → uid/listId
+  const tokenSnap = await db.collection('shared_lists').doc(shareToken).get();
+  if (!tokenSnap.exists) return null;
+  const { ownerUid, listId } = tokenSnap.data()!;
+
+  // 2단계: 실제 리스트 (isPublic 확인)
+  const listSnap = await db.collection('users').doc(ownerUid).collection('lists').doc(listId).get();
+  if (!listSnap.exists) return null;
+  const data = listSnap.data()!;
   if (!data.isPublic) return null;
 
   return {
@@ -96,24 +104,30 @@ export async function getSharedList(shareToken: string): Promise<SharedList | nu
 // ─── 생성 ───────────────────────────────────────────────────────────────────
 
 /**
- * 새 리스트 생성.
- * shared_lists 는 토큰 맵핑 전용 (ownerUid + listId만 저장, 데이터 없음).
+ * 새 리스트 생성 (초기 식당 포함 가능).
+ * - users/{uid}/lists/{listId} : 전체 데이터 (단일 진실 원천)
+ * - shared_lists/{shareToken}  : 토큰 맵핑 전용
  */
-export async function createList(uid: string, title: string): Promise<RestaurantList> {
+export async function createListWithPlaces(
+  uid: string,
+  title: string,
+  initialRestaurants: Restaurant[] = [],
+): Promise<RestaurantList> {
+  const db = getAdminDb();
   const shareToken = await generateUniqueToken();
-  const listRef = doc(collection(db, 'users', uid, 'lists'));
-  const now = serverTimestamp();
+  const listRef = db.collection('users').doc(uid).collection('lists').doc();
+  const now = FieldValue.serverTimestamp();
 
-  const batch = writeBatch(db);
+  const batch = db.batch();
   batch.set(listRef, {
     title,
-    restaurants: [],
+    restaurants: initialRestaurants,
     isPublic: false,
     shareToken,
     createdAt: now,
     updatedAt: now,
   });
-  batch.set(doc(db, 'shared_lists', shareToken), {
+  batch.set(db.collection('shared_lists').doc(shareToken), {
     ownerUid: uid,
     listId: listRef.id,
   });
@@ -122,7 +136,7 @@ export async function createList(uid: string, title: string): Promise<Restaurant
   return {
     id: listRef.id,
     title,
-    restaurants: [],
+    restaurants: initialRestaurants,
     isPublic: false,
     shareToken,
     createdAt: new Date().toISOString(),
@@ -130,15 +144,24 @@ export async function createList(uid: string, title: string): Promise<Restaurant
   };
 }
 
+/** 빈 리스트 생성 (하위 호환) */
+export async function createList(uid: string, title: string): Promise<RestaurantList> {
+  return createListWithPlaces(uid, title, []);
+}
+
 // ─── 식당 추가 / 제거 ────────────────────────────────────────────────────────
 
-/** 식당 추가 — users 컬렉션만 갱신 */
+/**
+ * 리스트에 식당 추가.
+ * users/{uid}/lists/{listId} 한 곳만 갱신.
+ */
 export async function addRestaurantToList(
   uid: string,
   listId: string,
   restaurant: Restaurant,
 ): Promise<void> {
-  const userListRef = doc(db, 'users', uid, 'lists', listId);
+  const db = getAdminDb();
+  const listRef = db.collection('users').doc(uid).collection('lists').doc(listId);
 
   const snapshot: Restaurant = {
     id: restaurant.id,
@@ -152,66 +175,86 @@ export async function addRestaurantToList(
     ...(restaurant.images?.length && { images: restaurant.images }),
   };
 
-  const snap = await getDoc(userListRef);
+  // 중복 체크
+  const snap = await listRef.get();
   const existing: Restaurant[] = snap.data()?.restaurants ?? [];
   if (existing.some((r) => r.id === restaurant.id)) return;
 
-  await updateDoc(userListRef, {
-    restaurants: arrayUnion(snapshot),
-    updatedAt: serverTimestamp(),
+  await listRef.update({
+    restaurants: FieldValue.arrayUnion(snapshot),
+    updatedAt: FieldValue.serverTimestamp(),
   });
 }
 
-/** 식당 제거 — users 컬렉션만 갱신 */
+/**
+ * 리스트에서 식당 제거.
+ * arrayRemove는 deep-equal이 필요하므로 현재 배열을 읽어 필터링.
+ */
 export async function removeRestaurantFromList(
   uid: string,
   listId: string,
   restaurantId: string,
 ): Promise<void> {
-  const userListRef = doc(db, 'users', uid, 'lists', listId);
-  const snap = await getDoc(userListRef);
+  const db = getAdminDb();
+  const listRef = db.collection('users').doc(uid).collection('lists').doc(listId);
+
+  const snap = await listRef.get();
   const restaurants: Restaurant[] = (snap.data()?.restaurants ?? []).filter(
     (r: Restaurant) => r.id !== restaurantId,
   );
-  await updateDoc(userListRef, { restaurants, updatedAt: serverTimestamp() });
+
+  await listRef.update({
+    restaurants,
+    updatedAt: FieldValue.serverTimestamp(),
+  });
 }
 
 // ─── 수정 ───────────────────────────────────────────────────────────────────
 
-/** 제목 수정 — users 컬렉션만 갱신 */
+/** 리스트 제목 수정 */
 export async function updateListTitle(
   uid: string,
   listId: string,
   title: string,
 ): Promise<void> {
-  await updateDoc(doc(db, 'users', uid, 'lists', listId), {
+  const db = getAdminDb();
+  await db.collection('users').doc(uid).collection('lists').doc(listId).update({
     title,
-    updatedAt: serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
   });
 }
 
-/** 공개 전환 — isPublic + updatedAt 원자적 갱신 */
+// ─── 공개 전환 ───────────────────────────────────────────────────────────────
+
+/**
+ * isPublic + updatedAt 두 필드만 원자적으로 변경.
+ * 데이터는 users/{uid}/lists/{listId} 한 곳에만 있으므로 추가 동기화 불필요.
+ */
 export async function togglePublicStatus(
   uid: string,
   listId: string,
   isPublic: boolean,
 ): Promise<void> {
-  await updateDoc(doc(db, 'users', uid, 'lists', listId), {
+  const db = getAdminDb();
+  await db.collection('users').doc(uid).collection('lists').doc(listId).update({
     isPublic,
-    updatedAt: serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
   });
 }
 
 // ─── 삭제 ───────────────────────────────────────────────────────────────────
 
-/** 리스트 + 토큰 맵핑 동시 삭제 */
+/**
+ * 리스트 + 토큰 맵핑 동시 삭제.
+ */
 export async function deleteList(
   uid: string,
   listId: string,
   shareToken: string,
 ): Promise<void> {
-  const batch = writeBatch(db);
-  batch.delete(doc(db, 'users', uid, 'lists', listId));
-  batch.delete(doc(db, 'shared_lists', shareToken));
+  const db = getAdminDb();
+  const batch = db.batch();
+  batch.delete(db.collection('users').doc(uid).collection('lists').doc(listId));
+  batch.delete(db.collection('shared_lists').doc(shareToken));
   await batch.commit();
 }
