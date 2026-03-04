@@ -20,6 +20,7 @@ export async function PATCH(
       uid: string;
       isPublic: boolean;
     };
+	console.log('[visibility] uid:', uid, 'isPublic:', isPublic);
 
     if (!uid || typeof isPublic !== 'boolean') {
       return NextResponse.json({ error: 'uid, isPublic 필드가 필요합니다.' }, { status: 400 });
