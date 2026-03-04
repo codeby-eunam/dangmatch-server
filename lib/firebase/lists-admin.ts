@@ -226,19 +226,66 @@ export async function updateListTitle(
 
 // ─── 공개 전환 ───────────────────────────────────────────────────────────────
 
-/**
- * isPublic + updatedAt 두 필드만 원자적으로 변경.
- * 데이터는 users/{uid}/lists/{listId} 한 곳에만 있으므로 추가 동기화 불필요.
- */
 export async function togglePublicStatus(
   uid: string,
   listId: string,
   isPublic: boolean,
 ): Promise<void> {
   const db = getAdminDb();
-  await db.collection('users').doc(uid).collection('lists').doc(listId).update({
+  const listRef = db.collection('users').doc(uid).collection('lists').doc(listId);
+  const publicRef = db.collection('public_lists').doc(listId);
+
+  console.log('[togglePublicStatus] isPublic:', isPublic);
+  // get을 먼저!
+  const snap = await listRef.get();
+  const data = snap.data()!;
+
+  console.log('[togglePublicStatus] data:', data);
+
+  const batch = db.batch();
+
+  batch.update(listRef, {
     isPublic,
     updatedAt: FieldValue.serverTimestamp(),
+  });
+
+  if (isPublic) {
+
+	console.log('[togglePublicStatus] public_lists에 쓰기 시도');
+
+    batch.set(publicRef, {
+      ownerUid: uid,
+      title: data.title,
+      restaurants: data.restaurants,
+      shareToken: data.shareToken,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+  } else {
+    batch.delete(publicRef);
+  }
+
+  await batch.commit();
+  console.log('[togglePublicStatus] batch commit 완료');
+}
+
+export async function getPublicLists() {
+  const db = getAdminDb();
+  const snap = await db
+    .collection('public_lists')
+    .orderBy('updatedAt', 'desc')
+    .limit(100)
+    .get();
+
+  return snap.docs.map((d) => {
+    const data = d.data();
+    return {
+      id: d.id,
+      ownerUid: data.ownerUid,
+      title: data.title ?? '',
+      restaurants: data.restaurants ?? [],
+      shareToken: data.shareToken ?? '',
+      updatedAt: toISO(data.updatedAt),
+    };
   });
 }
 
