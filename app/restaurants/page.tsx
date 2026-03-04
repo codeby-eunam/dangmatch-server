@@ -52,7 +52,6 @@ export default function RestaurantsPage() {
 		return;
 	}
 	const selectedRestaurants = sortedRestaurants.filter(r => selected.has(r.id));
-	console.log('🏁 토너먼트 시작:', selectedRestaurants.length, '개');
 	setRestaurants(selectedRestaurants);
 	router.push('/tournament');
 	};

@@ -29,7 +29,6 @@ export async function GET(request: NextRequest) {
 
   // state = 앱/웹에서 전달한 redirect_uri (route.ts에서 Kakao state로 넘김)
   const appRedirectUri = searchParams.get('state') ?? '';
-  console.log("🟡 state =", appRedirectUri);
   // redirect_uri가 있으면 (앱 딥링크, Expo Go, 웹앱 모두) 해당 URI로 리다이렉트
   const isAppCallback = !!appRedirectUri;
 

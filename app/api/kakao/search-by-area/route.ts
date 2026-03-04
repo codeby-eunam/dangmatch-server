@@ -22,9 +22,6 @@ export async function GET(request: NextRequest) {
     );
 
     const data = await response.json();
-    
-    console.log(`🔍 "${query}" 검색 결과: ${data.documents?.length}개`);
-    
     return Response.json(data);
   } catch (error) {
     return Response.json({ error: '검색 실패' }, { status: 500 });

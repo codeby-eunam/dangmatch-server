@@ -234,14 +234,9 @@ export async function togglePublicStatus(
   const db = getAdminDb();
   const listRef = db.collection('users').doc(uid).collection('lists').doc(listId);
   const publicRef = db.collection('public_lists').doc(listId);
-
-  console.log('[togglePublicStatus] isPublic:', isPublic);
   // get을 먼저!
   const snap = await listRef.get();
   const data = snap.data()!;
-
-  console.log('[togglePublicStatus] data:', data);
-
   const batch = db.batch();
 
   batch.update(listRef, {
@@ -250,9 +245,6 @@ export async function togglePublicStatus(
   });
 
   if (isPublic) {
-
-	console.log('[togglePublicStatus] public_lists에 쓰기 시도');
-
     batch.set(publicRef, {
       ownerUid: uid,
       title: data.title,
@@ -265,7 +257,6 @@ export async function togglePublicStatus(
   }
 
   await batch.commit();
-  console.log('[togglePublicStatus] batch commit 완료');
 }
 
 export async function getPublicLists() {

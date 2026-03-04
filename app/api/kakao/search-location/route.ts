@@ -35,9 +35,6 @@ export async function GET(request: NextRequest) {
       );
       data = await response.json();
     }
-
-    console.log(`🔍 "${query}" 검색 결과: ${data.documents?.length}개`);
-    
     return Response.json(data);
   } catch (error) {
     console.error('❌ 검색 에러:', error);

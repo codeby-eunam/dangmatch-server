@@ -10,7 +10,6 @@ export async function GET(request: NextRequest) {
   // 앱에서 전달한 redirect_uri (e.g. dangmatchapp://auth/callback)
   // Kakao state 파라미터에 담아서 callback 시 그대로 돌려받음
   const appRedirectUri = url.searchParams.get('redirect_uri') ?? '';
-  console.log("STATE =", appRedirectUri);
 
   const kakaoAuthUrl =
     `https://kauth.kakao.com/oauth/authorize` +
