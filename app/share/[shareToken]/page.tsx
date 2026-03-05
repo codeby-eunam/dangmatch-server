@@ -3,30 +3,14 @@ import type { Metadata } from 'next';
 import type { Restaurant } from '@/types';
 import Link from 'next/link';
 
-interface ShareData {
-  title: string;
-  restaurants: Restaurant[];
+interface SharedListRef {
+  listId: string;
+  ownerUid: string;
 }
 
-// ─── 메타데이터 (OG) ────────────────────────────────────────────────────────
-
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ shareToken: string }>;
-}): Promise<Metadata> {
-  const { shareToken } = await params;
-  try {
-    const snap = await getAdminDb().collection('shared_lists').doc(shareToken).get();
-    if (!snap.exists) return { title: '공유 리스트 — 당겨먹자' };
-    const data = snap.data() as ShareData;
-    return {
-      title: `${data.title} — 당겨먹자`,
-      description: `${data.restaurants.length}개 맛집이 담긴 리스트`,
-    };
-  } catch {
-    return { title: '공유 리스트 — 당겨먹자' };
-  }
+interface ListData {
+  title: string;
+  restaurants: Restaurant[];
 }
 
 // ─── 카테고리 이모지 ─────────────────────────────────────────────────────────
@@ -46,6 +30,42 @@ function getCategoryEmoji(category: string) {
   return '🍽️';
 }
 
+// ─── 공통 데이터 조회 헬퍼 ───────────────────────────────────────────────────
+
+async function getListData(shareToken: string): Promise<ListData | null> {
+  // 1. shared_lists에서 listId 조회
+  const sharedSnap = await getAdminDb().collection('shared_lists').doc(shareToken).get();
+  if (!sharedSnap.exists) return null;
+
+  const { listId } = sharedSnap.data() as SharedListRef;
+
+  // 2. public_lists에서 실제 데이터 조회
+  const listSnap = await getAdminDb().collection('public_lists').doc(listId).get();
+  if (!listSnap.exists) return null;
+
+  return listSnap.data() as ListData;
+}
+
+// ─── 메타데이터 (OG) ────────────────────────────────────────────────────────
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ shareToken: string }>;
+}): Promise<Metadata> {
+  const { shareToken } = await params;
+  try {
+    const data = await getListData(shareToken);
+    if (!data) return { title: '공유 리스트 — 당겨먹자' };
+    return {
+      title: `${data.title} — 당겨먹자`,
+      description: `${data.restaurants.length}개 맛집이 담긴 리스트`,
+    };
+  } catch {
+    return { title: '공유 리스트 — 당겨먹자' };
+  }
+}
+
 // ─── 페이지 ──────────────────────────────────────────────────────────────────
 
 export default async function SharePage({
@@ -55,10 +75,9 @@ export default async function SharePage({
 }) {
   const { shareToken } = await params;
 
-  let data: ShareData | null = null;
+  let data: ListData | null = null;
   try {
-    const snap = await getAdminDb().collection('shared_lists').doc(shareToken).get();
-    if (snap.exists) data = snap.data() as ShareData;
+    data = await getListData(shareToken);
   } catch {
     // Firestore 오류 시 not found 처리
   }
