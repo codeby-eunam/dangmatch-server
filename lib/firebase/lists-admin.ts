@@ -177,13 +177,20 @@ export async function addRestaurantToList(
 
   // 중복 체크
   const snap = await listRef.get();
-  const existing: Restaurant[] = snap.data()?.restaurants ?? [];
+  const data = snap.data()!;
+  const existing: Restaurant[] = data.restaurants ?? [];
   if (existing.some((r) => r.id === restaurant.id)) return;
 
-  await listRef.update({
-    restaurants: FieldValue.arrayUnion(snapshot),
-    updatedAt: FieldValue.serverTimestamp(),
+  const newRestaurants = [...existing, snapshot];
+  const batch = db.batch();
+  batch.update(listRef, {
+	restaurants: newRestaurants,
+	updatedAt: FieldValue.serverTimestamp(),
   });
+  if (data.isPublic) {
+	batch.update(db.collection('public_lists').doc(listId), { restaurants: newRestaurants, updatedAt: FieldValue.serverTimestamp() });
+  }
+  await batch.commit();
 }
 
 /**
@@ -199,14 +206,18 @@ export async function removeRestaurantFromList(
   const listRef = db.collection('users').doc(uid).collection('lists').doc(listId);
 
   const snap = await listRef.get();
-  const restaurants: Restaurant[] = (snap.data()?.restaurants ?? []).filter(
+  const data = snap.data()!;
+  const restaurants: Restaurant[] = (data.restaurants ?? []).filter(
     (r: Restaurant) => r.id !== restaurantId,
   );
+  
+  const batch = db.batch();
+  batch.update(listRef, { restaurants, updatedAt: FieldValue.serverTimestamp() });
+  if (data.isPublic) {
+	batch.update(db.collection('public_lists').doc(listId), { restaurants, updatedAt: FieldValue.serverTimestamp() });
+  }
 
-  await listRef.update({
-    restaurants,
-    updatedAt: FieldValue.serverTimestamp(),
-  });
+  await batch.commit();
 }
 
 // ─── 수정 ───────────────────────────────────────────────────────────────────
@@ -218,10 +229,26 @@ export async function updateListTitle(
   title: string,
 ): Promise<void> {
   const db = getAdminDb();
-  await db.collection('users').doc(uid).collection('lists').doc(listId).update({
-    title,
-    updatedAt: FieldValue.serverTimestamp(),
+  const listRef = db.collection('users').doc(uid).collection('lists').doc(listId);
+
+  const snap = await listRef.get();
+  const data = snap.data()!;
+
+  const batch = db.batch();
+  batch.update(listRef, {
+	title,
+	updatedAt: FieldValue.serverTimestamp(),
   });
+
+  if (data.isPublic) {
+	const publicRef = db.collection('public_lists').doc(listId);
+	batch.update(publicRef, {
+	  title,
+	  updatedAt: FieldValue.serverTimestamp(),
+	});
+  }
+
+  await batch.commit();
 }
 
 // ─── 공개 전환 ───────────────────────────────────────────────────────────────
