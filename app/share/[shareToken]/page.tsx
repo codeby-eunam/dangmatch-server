@@ -1,31 +1,42 @@
-'use client';
+import { getAdminDb } from '@/lib/firebase/admin';
+import { NextResponse } from 'next/server';
 
-import { useEffect } from 'react';
-import { useParams } from 'next/navigation';
+interface SharedListRef {
+  listId: string;
+  ownerUid: string;
+}
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://dangmatch-y7al.vercel.app';
-const APP_SCHEME = 'dangmatch';
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ shareToken: string }> }
+) {
+  const { shareToken } = await params;
 
-export default function SharePage() {
-  const { shareToken } = useParams<{ shareToken: string }>();
+  try {
+    // 1. shared_lists에서 listId 조회
+    const sharedSnap = await getAdminDb().collection('shared_lists').doc(shareToken).get();
+    if (!sharedSnap.exists) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
 
-  useEffect(() => {
-    const deepLink = `${APP_SCHEME}://share-detail?shareToken=${shareToken}`;
+    const { listId, ownerUid } = sharedSnap.data() as SharedListRef;
 
-    // 딥링크 시도
-    window.location.href = deepLink;
+    // 2. public_lists에서 실제 데이터 조회
+    const listSnap = await getAdminDb().collection('public_lists').doc(listId).get();
+    if (!listSnap.exists) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
 
-    // 앱 없으면 2초 후 웹으로 fallback
-    const timer = setTimeout(() => {
-      window.location.href = APP_URL;
-    }, 2000);
+    const listData = listSnap.data();
 
-    return () => clearTimeout(timer);
-  }, [shareToken]);
-
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-      <p>잠시만 기다려주세요...</p>
-    </div>
-  );
+    return NextResponse.json({
+      ...listData,
+      id: listId,
+      ownerUid,
+      shareToken,
+    });
+  } catch (err) {
+    console.error('[api/share] 오류:', err);
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+  }
 }
