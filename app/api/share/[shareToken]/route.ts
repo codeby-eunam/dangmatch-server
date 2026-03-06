@@ -13,7 +13,6 @@ export async function GET(
   const { shareToken } = await params;
 
   try {
-    // 1. shared_lists에서 listId 조회
     const sharedSnap = await getAdminDb().collection('shared_lists').doc(shareToken).get();
     if (!sharedSnap.exists) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -21,11 +20,13 @@ export async function GET(
 
     const { listId, ownerUid } = sharedSnap.data() as SharedListRef;
 
-    // 2. public_lists에서 실제 데이터 조회
     const listSnap = await getAdminDb().collection('public_lists').doc(listId).get();
     if (!listSnap.exists) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
+
+    const userSnap = await getAdminDb().collection('users').doc(ownerUid).get();
+    const userId = userSnap.exists ? (userSnap.data()?.userId ?? null) : null;
 
     const listData = listSnap.data();
 
@@ -33,6 +34,7 @@ export async function GET(
       ...listData,
       id: listId,
       ownerUid,
+      ownerUserId: userId,
       shareToken,
     });
   } catch (err) {
