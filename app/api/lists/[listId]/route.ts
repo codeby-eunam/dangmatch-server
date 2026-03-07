@@ -13,16 +13,13 @@ export async function DELETE(
 ) {
   try {
     const { listId } = await params;
-    const { uid, shareToken } = await req.json() as {
-      uid: string;
-      shareToken: string;
-    };
+    const { uid } = await req.json() as { uid: string };
 
-    if (!uid || !shareToken) {
-      return NextResponse.json({ error: 'uid, shareToken 필드가 필요합니다.' }, { status: 400 });
+    if (!uid) {
+      return NextResponse.json({ error: 'uid 필드가 필요합니다.' }, { status: 400 });
     }
 
-    await deleteList(uid, listId, shareToken);
+    await deleteList(uid, listId);
 
     return NextResponse.json({ ok: true });
   } catch (err) {
