@@ -48,6 +48,7 @@ export async function getUserLists(uid: string): Promise<RestaurantList[]> {
     const data = d.data();
     return {
       id: d.id,
+	  ownerUid: uid,
       title: data.title ?? '',
       restaurants: data.restaurants ?? [],
       isPublic: data.isPublic ?? false,
@@ -64,6 +65,7 @@ export async function getList(uid: string, listId: string): Promise<RestaurantLi
   const data = snap.data();
   return {
     id: snap.id,
+    ownerUid: uid,
     title: data.title ?? '',
     restaurants: data.restaurants ?? [],
     isPublic: data.isPublic ?? false,
@@ -121,6 +123,7 @@ export async function createList(uid: string, title: string): Promise<Restaurant
 
   return {
     id: listRef.id,
+    ownerUid: uid,
     title,
     restaurants: [],
     isPublic: false,
