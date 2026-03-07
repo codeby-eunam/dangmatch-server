@@ -42,19 +42,21 @@ export async function getUserLists(uid: string): Promise<RestaurantList[]> {
     .orderBy('updatedAt', 'desc')
     .get();
 
-  return snap.docs.map((d) => {
-    const data = d.data();
-    return {
-      id: d.id,
-	  ownerUid: uid,
-      title: data.title ?? '',
-      restaurants: data.restaurants ?? [],
-      isPublic: data.isPublic ?? false,
-      shareToken: data.shareToken ?? '',
-      createdAt: toISO(data.createdAt),
-      updatedAt: toISO(data.updatedAt),
-    } satisfies RestaurantList;
-  });
+  return snap.docs
+    .filter((d) => !d.data().deleted)
+    .map((d) => {
+      const data = d.data();
+      return {
+        id: d.id,
+        ownerUid: uid,
+        title: data.title ?? '',
+        restaurants: data.restaurants ?? [],
+        isPublic: data.isPublic ?? false,
+        shareToken: data.shareToken ?? '',
+        createdAt: toISO(data.createdAt),
+        updatedAt: toISO(data.updatedAt),
+      } satisfies RestaurantList;
+    });
 }
 
 /** 특정 리스트 조회 (편집용) */
@@ -313,16 +315,29 @@ export async function getPublicLists() {
 // ─── 삭제 ───────────────────────────────────────────────────────────────────
 
 /**
- * 리스트 + 토큰 맵핑 동시 삭제.
+ * 리스트 소프트 삭제 (deleted: true).
+ * 문서는 유지하되 조회에서 제외됨.
+ * 공개 상태였다면 public_lists·shared_lists 에서도 제거.
  */
 export async function deleteList(
   uid: string,
   listId: string,
-  shareToken: string,
 ): Promise<void> {
   const db = getAdminDb();
+  const listRef = db.collection('users').doc(uid).collection('lists').doc(listId);
+
+  const snap = await listRef.get();
+  const data = snap.data();
+
   const batch = db.batch();
-  batch.delete(db.collection('users').doc(uid).collection('lists').doc(listId));
-  batch.delete(db.collection('shared_lists').doc(shareToken));
+  batch.update(listRef, { deleted: true, updatedAt: FieldValue.serverTimestamp() });
+
+  if (data?.isPublic) {
+    batch.delete(db.collection('public_lists').doc(listId));
+  }
+  if (data?.shareToken) {
+    batch.delete(db.collection('shared_lists').doc(data.shareToken));
+  }
+
   await batch.commit();
 }
