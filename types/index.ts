@@ -51,6 +51,7 @@ export interface TournamentMatch {
 
 export interface RestaurantList {
   id: string;
+  ownerUid: string;
   title: string;
   restaurants: Restaurant[];
   isPublic: boolean;
