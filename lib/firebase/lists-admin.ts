@@ -46,6 +46,7 @@ export async function getUserLists(uid: string): Promise<RestaurantList[]> {
     const data = d.data();
     return {
       id: d.id,
+	  ownerUid: uid,
       title: data.title ?? '',
       restaurants: data.restaurants ?? [],
       isPublic: data.isPublic ?? false,
