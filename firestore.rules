@@ -71,12 +71,10 @@ service cloud.firestore {
         && request.auth.uid == resource.data.createdBy;
     }
 
-    // ── 유저 선택 기록 ───────────────────────────────────────────────────────
-    // 읽기: 본인 기록만 (userId == kakaoId)
-    // 쓰기: 로그인 유저만
-    match /selections/{docId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
+    // ── 유저 선택 기록 (서브컬렉션) ─────────────────────────────────────────
+    // 읽기·쓰기: 서버(Admin SDK)를 통해서만 수행 — 클라이언트 직접 접근 차단
+    match /users/{uid}/userlog/{docId} {
+      allow read, write: if false;
     }
 
     // ── 학교 변경 건의 ────────────────────────────────────────────────────────
