@@ -24,6 +24,27 @@ export async function POST(req: NextRequest) {
     }
 
     const db = getAdminDb();
+
+    // 오늘 날짜 범위 계산 (KST 기준 자정 ~ 다음 자정)
+    const now = new Date();
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date(now);
+    todayEnd.setHours(23, 59, 59, 999);
+
+    const existing = await db
+      .collection('users').doc(userId)
+      .collection('userlog')
+      .where('restaurantId', '==', restaurantId)
+      .where('selectedAt', '>=', todayStart)
+      .where('selectedAt', '<=', todayEnd)
+      .limit(1)
+      .get();
+
+    if (!existing.empty) {
+      return NextResponse.json({ id: existing.docs[0].id, skipped: true }, { status: 200 });
+    }
+
     const docRef = await db
       .collection('users').doc(userId)
       .collection('userlog').add({
