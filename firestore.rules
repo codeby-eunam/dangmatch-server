@@ -77,6 +77,14 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // ── 이벤트 로그 (Analytics) ───────────────────────────────────────────────
+    // 읽기: 닫힘 (콘솔에서만 확인)
+    // 쓰기: 누구나 (비로그인 유저 포함, 클라이언트 SDK 직접 저장)
+    match /events/{docId} {
+      allow read: if false;
+      allow create: if true;
+    }
+
     // ── 학교 변경 건의 ────────────────────────────────────────────────────────
     // 읽기: 닫힘 (Firebase 콘솔에서 관리자가 직접 확인)
     // 쓰기: 로그인 유저만
