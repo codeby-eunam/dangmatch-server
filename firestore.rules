@@ -71,6 +71,14 @@ service cloud.firestore {
         && request.auth.uid == resource.data.createdBy;
     }
 
+    // ── 유저 선택 기록 ───────────────────────────────────────────────────────
+    // 읽기: 본인 기록만 (userId == kakaoId)
+    // 쓰기: 로그인 유저만
+    match /selections/{docId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+    }
+
     // ── 학교 변경 건의 ────────────────────────────────────────────────────────
     // 읽기: 닫힘 (Firebase 콘솔에서 관리자가 직접 확인)
     // 쓰기: 로그인 유저만

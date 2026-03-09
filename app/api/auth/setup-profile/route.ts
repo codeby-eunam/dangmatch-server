@@ -4,9 +4,13 @@ import { FieldValue } from 'firebase-admin/firestore';
 
 export async function POST(request: NextRequest) {
   try {
-    const { kakaoId, userId, nickname } = await request.json();
+    const body = await request.json();
+    const { kakaoId, naverId, googleId, userId, nickname } = body;
 
-    if (!kakaoId || !userId || !nickname) {
+    // provider별 socialId 결정 (kakaoId 필드에 모든 provider ID가 들어올 수 있음)
+    const socialId: string | undefined = kakaoId ?? naverId ?? googleId;
+
+    if (!socialId || !userId || !nickname) {
       return NextResponse.json({ error: '필수 값이 없습니다.' }, { status: 400 });
     }
 
@@ -22,7 +26,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '이미 사용 중인 아이디입니다.' }, { status: 409 });
     }
 
-    const userRef = db.collection('users').doc(kakaoId);
+    const userRef = db.collection('users').doc(socialId);
     const userSnap = await userRef.get();
 
     if (!userSnap.exists) {
