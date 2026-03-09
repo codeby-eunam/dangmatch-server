@@ -6,29 +6,29 @@ import { getAdminDb } from '@/lib/firebase/admin';
  * POST /api/reviews
  * 리뷰 저장 (Admin SDK 사용)
  * 저장 경로: users/{userId}/reviews/{docId}
+ * 리뷰 저장 후 userlog의 해당 restaurantId 도큐먼트에 reviewed: true 자동 설정
  *
- * Body: { userId, restaurantId, restaurantName, rating, content }
+ * Body: { userId, restaurantId, restaurantName, comment, peopleCount?, totalPrice?, pricePerPerson? }
  */
 export async function POST(req: NextRequest) {
   try {
-    const { userId, restaurantId, restaurantName, rating, content } = await req.json() as {
+    const { userId, restaurantId, restaurantName, comment, peopleCount, totalPrice, pricePerPerson } = await req.json() as {
       userId: string;
       restaurantId: string;
       restaurantName: string;
-      rating: number;
-      content: string;
+      comment: string;
+      peopleCount?: number | null;
+      totalPrice?: number | null;
+      pricePerPerson?: number | null;
     };
 
-    if (!userId || !restaurantId || !restaurantName || !rating || !content) {
+    if (!userId || !restaurantId || !restaurantName || !comment) {
       return NextResponse.json(
-        { error: 'userId, restaurantId, restaurantName, rating, content 필드가 필요합니다.' },
+        { error: 'userId, restaurantId, restaurantName, comment 필드가 필요합니다.' },
         { status: 400 },
       );
     }
-    if (rating < 1 || rating > 5) {
-      return NextResponse.json({ error: 'rating은 1~5 사이여야 합니다.' }, { status: 400 });
-    }
-    if (content.trim().length < 5) {
+    if (comment.trim().length < 5) {
       return NextResponse.json({ error: '리뷰 내용은 5자 이상이어야 합니다.' }, { status: 400 });
     }
 
@@ -51,10 +51,25 @@ export async function POST(req: NextRequest) {
       .collection('reviews').add({
         restaurantId,
         restaurantName,
-        rating,
-        content: content.trim(),
+        comment: comment.trim(),
+        peopleCount: peopleCount ?? null,
+        totalPrice: totalPrice ?? null,
+        pricePerPerson: pricePerPerson ?? null,
         createdAt: FieldValue.serverTimestamp(),
       });
+
+    // userlog에서 해당 restaurantId 도큐먼트에 reviewed: true 설정
+    const userlogSnap = await db
+      .collection('users').doc(userId)
+      .collection('userlog')
+      .where('restaurantId', '==', restaurantId)
+      .get();
+
+    if (!userlogSnap.empty) {
+      const batch = db.batch();
+      userlogSnap.docs.forEach((doc) => batch.update(doc.ref, { reviewed: true }));
+      await batch.commit();
+    }
 
     return NextResponse.json({ id: docRef.id }, { status: 201 });
   } catch (err) {
