@@ -77,6 +77,12 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // ── 유저 리뷰 (서브컬렉션) ───────────────────────────────────────────────
+    // 읽기·쓰기: 서버(Admin SDK)를 통해서만 수행 — 클라이언트 직접 접근 차단
+    match /users/{uid}/reviews/{docId} {
+      allow read, write: if false;
+    }
+
     // ── 이벤트 로그 (Analytics) ───────────────────────────────────────────────
     // 읽기: 닫힘 (콘솔에서만 확인)
     // 쓰기: 누구나 (비로그인 유저 포함, 클라이언트 SDK 직접 저장)
