@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { normalizeDocuments } from '../kakaoUtils';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -22,7 +23,10 @@ export async function GET(request: NextRequest) {
     );
 
     const data = await response.json();
-    return Response.json(data);
+    return Response.json({
+      ...data,
+      documents: normalizeDocuments(data.documents ?? []),
+    });
   } catch (error) {
     return Response.json({ error: '검색 실패' }, { status: 500 });
   }

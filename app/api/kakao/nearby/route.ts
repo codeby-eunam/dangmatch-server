@@ -1,4 +1,6 @@
 import { NextRequest } from 'next/server';
+import { normalizeDocuments } from '../kakaoUtils';
+import { isKoreaCoordinate, searchNearbyGoogle } from '../googlePlaces';
 
 const CATEGORY_MAP: Record<string, { query: string; categoryGroupCode?: string }> = {
   '한식': { query: '한식', categoryGroupCode: 'FD6' },
@@ -20,6 +22,31 @@ export async function GET(request: NextRequest) {
 
   if (!lat || !lng) {
     return Response.json({ error: '위치 정보 필요' }, { status: 400 });
+  }
+
+  const latNum = parseFloat(lat);
+  const lngNum = parseFloat(lng);
+
+  // 한국 밖 좌표면 Kakao(한국 전용 데이터) 대신 Google Places를 사용한다.
+  if (!isKoreaCoordinate(latNum, lngNum)) {
+    try {
+      const documents = await searchNearbyGoogle(
+        latNum,
+        lngNum,
+        parseInt(radius, 10),
+        categoryParam,
+      );
+      return Response.json({ documents });
+    } catch (error) {
+      console.error('❌ Google Places API 에러:', error);
+      return Response.json(
+        {
+          error: '검색 실패',
+          details: error instanceof Error ? error.message : 'Unknown error',
+        },
+        { status: 500 },
+      );
+    }
   }
 
   const apiKey = process.env.KAKAO_REST_API_KEY;
@@ -60,7 +87,7 @@ export async function GET(request: NextRequest) {
 
     console.log(`✅ [${categoryParam}] 식당 ${documents.length}개 찾음`);
 
-    return Response.json({ documents });
+    return Response.json({ documents: normalizeDocuments(documents) });
   } catch (error) {
     console.error('❌ API 에러:', error);
     return Response.json(
