@@ -10,6 +10,7 @@ interface GooglePlace {
   internationalPhoneNumber?: string;
   googleMapsUri?: string;
   types?: string[];
+  photos?: { name?: string }[];
 }
 
 /** Kakao/Google 판단 기준: 한국의 대략적인 경계 박스 (Flutter의 isKoreaCoordinate와 동일). */
@@ -37,6 +38,7 @@ const FIELD_MASK = [
   'places.internationalPhoneNumber',
   'places.googleMapsUri',
   'places.types',
+  'places.photos',
 ].join(',');
 
 function haversineMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -54,6 +56,7 @@ function haversineMeters(lat1: number, lng1: number, lat2: number, lng2: number)
 function toDocument(place: GooglePlace, origin?: { lat: number; lng: number }) {
   const lat = place.location?.latitude ?? 0;
   const lng = place.location?.longitude ?? 0;
+  const photoName = place.photos?.[0]?.name;
   return {
     id: place.id ?? '',
     place_name: place.displayName?.text ?? '',
@@ -65,6 +68,9 @@ function toDocument(place: GooglePlace, origin?: { lat: number; lng: number }) {
     y: String(lat),
     distance: origin ? String(Math.round(haversineMeters(origin.lat, origin.lng, lat, lng))) : '',
     place_url: place.googleMapsUri ?? '',
+    // 사진 자체는 API 키가 필요해 클라이언트에 직접 노출하지 않고,
+    // 우리 서버의 /api/kakao/photo 프록시를 거쳐 받아온다.
+    photo_url: photoName ? `/api/kakao/photo?name=${encodeURIComponent(photoName)}` : '',
   };
 }
 
