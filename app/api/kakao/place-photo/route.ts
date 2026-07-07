@@ -29,10 +29,17 @@ export async function GET(request: NextRequest) {
       html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ??
       html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
 
+    // og:image가 프로토콜 상대 URL(//img1.kakaocdn.net/...)로 오는 경우가 있어
+    // 클라이언트가 스킴 없이는 로드할 수 없으므로 https:를 붙여준다.
+    let photoUrl = match?.[1] ?? '';
+    if (photoUrl.startsWith('//')) {
+      photoUrl = `https:${photoUrl}`;
+    }
+
     return Response.json({
-      photo_url: match?.[1] ?? '',
-      // 짧은 시간 내 같은 카드로 다시 돌아와도 재요청하지 않도록 캐시.
+      photo_url: photoUrl,
     }, {
+      // 짧은 시간 내 같은 카드로 다시 돌아와도 재요청하지 않도록 캐시.
       headers: { 'Cache-Control': 'public, max-age=3600' },
     });
   } catch (error) {
