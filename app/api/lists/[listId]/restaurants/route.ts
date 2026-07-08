@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { addRestaurantToList, removeRestaurantFromList } from '@/lib/firebase/lists-admin';
+import { verifyRequestUid } from '@/lib/firebase/auth-helpers';
 import type { Restaurant } from '@/types';
 
 /**
@@ -9,8 +10,8 @@ import type { Restaurant } from '@/types';
  * users/{uid}/lists/{listId} 한 곳만 갱신 (단일 진실 원천).
  *
  * Body:
- *   add    — { uid, action: 'add',    restaurant: Restaurant }
- *   remove — { uid, action: 'remove', restaurantId: string  }
+ *   add    — { action: 'add',    restaurant: Restaurant }
+ *   remove — { action: 'remove', restaurantId: string  }
  */
 export async function PATCH(
   req: NextRequest,
@@ -18,17 +19,21 @@ export async function PATCH(
 ) {
   try {
     const { listId } = await params;
+    const uid = await verifyRequestUid(req);
+    if (!uid) {
+      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 });
+    }
+
     const body = await req.json() as {
-      uid: string;
       action: 'add' | 'remove';
       restaurant?: Restaurant;
       restaurantId?: string;
     };
 
-    const { uid, action } = body;
+    const { action } = body;
 
-    if (!uid || !action) {
-      return NextResponse.json({ error: 'uid, action 필드가 필요합니다.' }, { status: 400 });
+    if (!action) {
+      return NextResponse.json({ error: 'action 필드가 필요합니다.' }, { status: 400 });
     }
 
     if (action === 'add') {

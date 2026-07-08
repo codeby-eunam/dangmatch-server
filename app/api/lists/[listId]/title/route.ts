@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateListTitle } from '@/lib/firebase/lists-admin';
+import { verifyRequestUid } from '@/lib/firebase/auth-helpers';
 
 /**
  * PATCH /api/lists/[listId]/title
@@ -7,7 +8,7 @@ import { updateListTitle } from '@/lib/firebase/lists-admin';
  * 공개 리스트의 제목 수정.
  * users/{uid}/lists/{listId} 한 곳만 갱신 (단일 진실 원천).
  *
- * Body: { uid: string, title: string }
+ * Body: { title: string }
  */
 export async function PATCH(
   req: NextRequest,
@@ -15,13 +16,15 @@ export async function PATCH(
 ) {
   try {
     const { listId } = await params;
-    const { uid, title } = await req.json() as {
-      uid: string;
-      title: string;
-    };
+    const uid = await verifyRequestUid(req);
+    if (!uid) {
+      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 });
+    }
 
-    if (!uid || !title) {
-      return NextResponse.json({ error: 'uid, title 필드가 필요합니다.' }, { status: 400 });
+    const { title } = await req.json() as { title: string };
+
+    if (!title) {
+      return NextResponse.json({ error: 'title 필드가 필요합니다.' }, { status: 400 });
     }
 
     await updateListTitle(uid, listId, title);

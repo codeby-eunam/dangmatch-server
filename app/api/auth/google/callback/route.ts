@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminDb } from '@/lib/firebase/admin';
+import { getAdminAuth, getAdminDb } from '@/lib/firebase/admin';
 import { FieldValue } from 'firebase-admin/firestore';
 
 interface GoogleTokenResponse {
@@ -128,6 +128,10 @@ export async function GET(request: NextRequest) {
           }
         });
 
+      // 앱이 이후 API 요청에 Authorization: Bearer <idToken>으로 실어 보낼 수 있도록,
+      // 웹 경로와 동일하게 Firebase Custom Token을 발급한다 (uid = googleId).
+      const customToken = await getAdminAuth().createCustomToken(googleId, { provider: 'google' });
+
       const params = new URLSearchParams({
         googleId,
         isNewUser: String(isNewUser),
@@ -135,6 +139,7 @@ export async function GET(request: NextRequest) {
         joinOrder: String(joinOrder),
         badges: badges.join(','),
         createdAt,
+        customToken,
       });
       if (userId) params.set('userId', userId);
       if (profileImage) params.set('profileImage', profileImage);

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { togglePublicStatus } from '@/lib/firebase/lists-admin';
+import { verifyRequestUid } from '@/lib/firebase/auth-helpers';
 
 /**
  * PATCH /api/lists/[listId]/visibility
@@ -8,7 +9,7 @@ import { togglePublicStatus } from '@/lib/firebase/lists-admin';
  * 데이터는 users/{uid}/lists/{listId} 한 곳에만 있으므로
  * isPublic + updatedAt 두 필드만 갱신한다.
  *
- * Body: { uid: string, isPublic: boolean }
+ * Body: { isPublic: boolean }
  */
 export async function PATCH(
   req: NextRequest,
@@ -16,13 +17,15 @@ export async function PATCH(
 ) {
   try {
     const { listId } = await params;
-    const { uid, isPublic } = await req.json() as {
-      uid: string;
-      isPublic: boolean;
-    };
+    const uid = await verifyRequestUid(req);
+    if (!uid) {
+      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 });
+    }
 
-    if (!uid || typeof isPublic !== 'boolean') {
-      return NextResponse.json({ error: 'uid, isPublic 필드가 필요합니다.' }, { status: 400 });
+    const { isPublic } = await req.json() as { isPublic: boolean };
+
+    if (typeof isPublic !== 'boolean') {
+      return NextResponse.json({ error: 'isPublic 필드가 필요합니다.' }, { status: 400 });
     }
 
     await togglePublicStatus(uid, listId, isPublic);

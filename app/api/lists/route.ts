@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserLists, createListWithPlaces } from '@/lib/firebase/lists-admin';
+import { verifyRequestUid } from '@/lib/firebase/auth-helpers';
 import type { Restaurant } from '@/types';
 
 // 앱에서 넘어오는 간소화된 Place 타입 (lat/lng/phone 없음)
@@ -32,9 +33,9 @@ function appPlaceToRestaurant(p: AppPlace): Restaurant {
  */
 export async function GET(req: NextRequest) {
   try {
-    const uid = req.nextUrl.searchParams.get('uid');
+    const uid = await verifyRequestUid(req);
     if (!uid) {
-      return NextResponse.json({ error: 'uid 파라미터가 필요합니다.' }, { status: 400 });
+      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 });
     }
     const lists = await getUserLists(uid);
     return NextResponse.json({ lists });
@@ -52,14 +53,18 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   try {
-    const { uid, title, places = [] } = await req.json() as {
-      uid: string;
+    const uid = await verifyRequestUid(req);
+    if (!uid) {
+      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 });
+    }
+
+    const { title, places = [] } = await req.json() as {
       title: string;
       places?: AppPlace[];
     };
 
-    if (!uid || !title) {
-      return NextResponse.json({ error: 'uid, title 필드가 필요합니다.' }, { status: 400 });
+    if (!title) {
+      return NextResponse.json({ error: 'title 필드가 필요합니다.' }, { status: 400 });
     }
 
     const restaurants: Restaurant[] = places.map(appPlaceToRestaurant);

@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { deleteList } from '@/lib/firebase/lists-admin';
+import { verifyRequestUid } from '@/lib/firebase/auth-helpers';
 
 /**
  * DELETE /api/lists/[listId]
  * 리스트 + 토큰 맵핑 동시 삭제
- *
- * Body: { uid: string, shareToken: string }
  */
 export async function DELETE(
   req: NextRequest,
@@ -13,10 +12,9 @@ export async function DELETE(
 ) {
   try {
     const { listId } = await params;
-    const { uid } = await req.json() as { uid: string };
-
+    const uid = await verifyRequestUid(req);
     if (!uid) {
-      return NextResponse.json({ error: 'uid 필드가 필요합니다.' }, { status: 400 });
+      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 });
     }
 
     await deleteList(uid, listId);

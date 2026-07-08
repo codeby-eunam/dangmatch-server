@@ -134,6 +134,10 @@ export async function GET(request: NextRequest) {
           }
         });
 
+      // 앱이 이후 API 요청에 Authorization: Bearer <idToken>으로 실어 보낼 수 있도록,
+      // 웹 경로와 동일하게 Firebase Custom Token을 발급한다 (uid = kakaoId).
+      const customToken = await getAdminAuth().createCustomToken(kakaoId, { provider: 'kakao' });
+
       const params = new URLSearchParams({
         kakaoId,
         isNewUser: String(isNewUser),
@@ -142,10 +146,11 @@ export async function GET(request: NextRequest) {
         joinOrder: String(joinOrder),
         badges: badges.join(','),
         createdAt,
+        customToken,
       });
       if (userId) params.set('userId', userId);
       if (profileImage) params.set('profileImage', profileImage);
-	  
+
 	  const finalUrl = `${appRedirectUri}?${params.toString()}`;
 	  console.log("🚀 FINAL REDIRECT =", finalUrl);
       return NextResponse.redirect(finalUrl);
