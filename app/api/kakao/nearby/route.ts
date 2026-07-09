@@ -2,7 +2,14 @@ import { NextRequest } from 'next/server';
 import { unstable_cache } from 'next/cache';
 import { normalizeDocuments } from '../kakaoUtils';
 import { isKoreaCoordinate, searchNearbyGoogle } from '../googlePlaces';
-import { roundToGrid, assertNonEmpty, EmptyResultError, NEARBY_TTL_SECONDS } from '../cache';
+import {
+  roundToGrid,
+  clampRadius,
+  clampMaxPages,
+  assertNonEmpty,
+  respondWithDocuments,
+  NEARBY_TTL_SECONDS,
+} from '../cache';
 
 const CATEGORY_MAP: Record<string, { query: string; categoryGroupCode?: string }> = {
   '한식': { query: '한식', categoryGroupCode: 'FD6' },
@@ -13,6 +20,14 @@ const CATEGORY_MAP: Record<string, { query: string; categoryGroupCode?: string }
   '카페': { query: '카페', categoryGroupCode: 'CE7' },
   '기타': { query: '음식점', categoryGroupCode: 'FD6' },
 };
+
+// 캐시 키 카디널리티를 유한하게 유지하기 위해, 알 수 없는 category 값은 여기서
+// '기타'로 접어버린다 — 안 그러면 매 요청마다 다른 문자열을 보내는 것만으로
+// 캐시를 무한정 우회(=매번 유료 API 호출)할 수 있다.
+const VALID_CATEGORIES = new Set(Object.keys(CATEGORY_MAP));
+function resolveCategoryKey(categoryParam: string): string {
+  return VALID_CATEGORIES.has(categoryParam) ? categoryParam : '기타';
+}
 
 // 좌표를 그리드에 맞춰 반올림한 뒤 캐싱하므로, 같은 동네에서 여러 사용자가
 // 검색해도 실제 외부 API 호출은 TTL 동안 1번만 나간다.
@@ -55,7 +70,10 @@ const getCachedNearbyKakao = unstable_cache(
       return fetch(url.toString(), {
         headers: { Authorization: `KakaoAK ${apiKey}` },
         cache: 'no-store',
-      }).then(r => r.json());
+      }).then(async r => {
+        if (!r.ok) throw new Error(`Kakao keyword search failed: ${r.status}`);
+        return r.json();
+      });
     }));
 
     const seen = new Set();
@@ -79,9 +97,6 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const lat = searchParams.get('lat');
   const lng = searchParams.get('lng');
-  const radius = searchParams.get('radius') || '1000';
-  const categoryParam = searchParams.get('category') || '기타';
-  const maxPages = Math.min(3, Math.max(1, parseInt(searchParams.get('maxPages') || '3', 10)));
 
   if (!lat || !lng) {
     return Response.json({ error: '위치 정보 필요' }, { status: 400 });
@@ -89,48 +104,26 @@ export async function GET(request: NextRequest) {
 
   const latNum = parseFloat(lat);
   const lngNum = parseFloat(lng);
+  if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) {
+    return Response.json({ error: '위치 정보가 올바르지 않습니다' }, { status: 400 });
+  }
+
   const latKey = roundToGrid(latNum);
   const lngKey = roundToGrid(lngNum);
+  const radiusNum = clampRadius(parseInt(searchParams.get('radius') || '', 10));
+  const maxPages = clampMaxPages(parseInt(searchParams.get('maxPages') || '', 10));
+  const categoryKey = resolveCategoryKey(searchParams.get('category') || '기타');
 
   // 한국 밖 좌표면 Kakao(한국 전용 데이터) 대신 Google Places를 사용한다.
   if (!isKoreaCoordinate(latNum, lngNum)) {
-    try {
-      const documents = await getCachedNearbyGoogle(
-        latKey,
-        lngKey,
-        parseInt(radius, 10),
-        categoryParam,
-      );
-      return Response.json({ documents });
-    } catch (error) {
-      if (error instanceof EmptyResultError) {
-        return Response.json({ documents: [] });
-      }
-      console.error('❌ Google Places API 에러:', error);
-      return Response.json(
-        {
-          error: '검색 실패',
-          details: error instanceof Error ? error.message : 'Unknown error',
-        },
-        { status: 500 },
-      );
-    }
-  }
-
-  try {
-    const documents = await getCachedNearbyKakao(latKey, lngKey, radius, categoryParam, maxPages);
-    return Response.json({ documents });
-  } catch (error) {
-    if (error instanceof EmptyResultError) {
-      return Response.json({ documents: [] });
-    }
-    console.error('❌ API 에러:', error);
-    return Response.json(
-      {
-        error: '검색 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
+    return respondWithDocuments(
+      () => getCachedNearbyGoogle(latKey, lngKey, radiusNum, categoryKey),
+      'Google Places API 에러',
     );
   }
+
+  return respondWithDocuments(
+    () => getCachedNearbyKakao(latKey, lngKey, String(radiusNum), categoryKey, maxPages),
+    'Kakao API 에러',
+  );
 }

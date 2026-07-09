@@ -2,7 +2,13 @@ import { NextRequest } from 'next/server';
 import { unstable_cache } from 'next/cache';
 import { normalizeDocuments } from '../kakaoUtils';
 import { isKoreaCoordinate, searchTextGoogle } from '../googlePlaces';
-import { normalizeQuery, assertNonEmpty, EmptyResultError, LOCATION_TTL_SECONDS } from '../cache';
+import {
+  normalizeQuery,
+  assertNonEmpty,
+  respondWithDocuments,
+  LOCATION_TTL_SECONDS,
+  MAX_QUERY_LENGTH,
+} from '../cache';
 
 // Google 우선 확인 → Kakao 키워드 → Kakao 주소, 세 갈래 전체를 "이 쿼리의 최종 답"
 // 이라는 한 캐시 단위로 묶는다.
@@ -34,6 +40,7 @@ const getCachedLocationDocuments = unstable_cache(
         }
       }
     );
+    if (!response.ok) throw new Error(`Kakao keyword search failed: ${response.status}`);
 
     let data = await response.json();
 
@@ -47,6 +54,7 @@ const getCachedLocationDocuments = unstable_cache(
           }
         }
       );
+      if (!response.ok) throw new Error(`Kakao address search failed: ${response.status}`);
       data = await response.json();
     }
     return assertNonEmpty(normalizeDocuments(data.documents ?? []));
@@ -62,15 +70,14 @@ export async function GET(request: NextRequest) {
   if (!query) {
     return Response.json({ error: '검색어 필요' }, { status: 400 });
   }
-
-  try {
-    const documents = await getCachedLocationDocuments(normalizeQuery(query));
-    return Response.json({ documents });
-  } catch (error) {
-    if (error instanceof EmptyResultError) {
-      return Response.json({ documents: [] });
-    }
-    console.error('❌ 검색 에러:', error);
-    return Response.json({ error: '검색 실패' }, { status: 500 });
+  if (query.length > MAX_QUERY_LENGTH) {
+    return Response.json({ error: '검색어가 너무 깁니다' }, { status: 400 });
   }
+
+  const normalizedQuery = normalizeQuery(query);
+  if (!normalizedQuery) {
+    return Response.json({ error: '검색어 필요' }, { status: 400 });
+  }
+
+  return respondWithDocuments(() => getCachedLocationDocuments(normalizedQuery), '검색 에러');
 }
